@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StockView — Revisioni</title>
+<style>
+  :root{--bg:#0f1720;--panel:#16212e;--panel2:#1c2a3a;--line:#26384c;--txt:#e8eef5;--muted:#8aa0b6;--accent:#3da9fc;--accent2:#2b7fd6;--ok:#36c98d;--bad:#ff6b6b;--warn:#f5a524;--chip:#1c2a3a;--shadow:0 10px 30px rgba(0,0,0,.35)}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:34px 30px;width:100%;max-width:370px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand .dot{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7c5cff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
+  .brand h1{font-size:18px;margin:0}
+  .sub{color:var(--muted);font-size:12.5px;margin:6px 0 18px}
+  label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px}
+  input[type=email],input[type=password]{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:14px;outline:none}
+  input:focus{border-color:var(--accent)}
+  button{cursor:pointer;font-family:inherit}
+  .btn{width:100%;margin-top:18px;padding:12px;border:none;border-radius:10px;background:var(--accent);color:#04121f;font-weight:700;font-size:14.5px}
+  .btn:hover{background:var(--accent2);color:#fff}
+  .err{color:var(--bad);font-size:12.5px;margin-top:12px;min-height:15px}
+  #app{display:none}
+  header{position:sticky;top:0;z-index:30;background:rgba(15,23,32,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 18px;display:flex;align-items:center;gap:18px}
+  header .brand h1{font-size:15px}
+  nav{display:flex;gap:14px}
+  nav a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:600;padding:4px 2px;border-bottom:2px solid transparent}
+  nav a:hover{color:var(--accent)}
+  nav a.cur{color:var(--accent);border-bottom-color:var(--accent)}
+  .spacer{flex:1}
+  .who{color:var(--muted);font-size:12.5px}
+  .rolechip{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:20px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+  .rolechip.admin{background:rgba(54,201,141,.18);color:var(--ok)}
+  .rolechip.gestore{background:rgba(138,160,182,.18);color:var(--muted)}
+  .ghost{background:transparent;border:1px solid var(--line);color:var(--muted);padding:6px 11px;border-radius:8px;font-size:12.5px}
+  .ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .wrap{max-width:1500px;margin:0 auto;padding:18px}
+  .pagetitle{font-size:20px;margin:6px 2px 6px}
+  .section-h{font-size:15px;font-weight:700;margin:22px 2px 10px;display:flex;align-items:center;gap:10px}
+  .section-h .cnt{background:var(--chip);border:1px solid var(--line);color:var(--muted);font-size:12px;font-weight:600;padding:1px 9px;border-radius:20px}
+  .notice{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:26px;color:var(--muted);text-align:center;margin-top:24px}
+  .status{color:var(--muted);font-size:13px;margin:8px 2px}
+  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{padding:8px 11px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+  thead th{position:sticky;top:0;background:var(--panel2);color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;z-index:5}
+  tbody tr:hover td{background:var(--panel2)}
+  .ref b{color:var(--txt)} .ref small{display:block;color:var(--muted);font-size:11.5px}
+  .cat-att{display:inline-block;background:rgba(255,107,107,.15);color:var(--bad);font-weight:700;padding:2px 9px;border-radius:7px}
+  .cat-pro{display:inline-block;background:rgba(54,201,141,.15);color:var(--ok);font-weight:700;padding:2px 9px;border-radius:7px}
+  .arrow{color:var(--muted);margin:0 7px;font-weight:700}
+  .btn-annulla{background:transparent;border:1px solid var(--bad);color:var(--bad);border-radius:8px;padding:5px 11px;font-size:12px;font-weight:600}
+  .btn-annulla:hover{background:rgba(255,107,107,.12)}
+  .btn-ripristina{background:transparent;border:1px solid var(--ok);color:var(--ok);border-radius:8px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .btn-ripristina:hover{background:rgba(54,201,141,.12)}
+  .btn-ripristina:disabled{opacity:.55;cursor:wait}
+  .muted{color:var(--muted)}
+  .modal-back{position:fixed;inset:0;background:rgba(4,10,18,.66);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+  .modal-back.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:22px;width:100%;max-width:440px}
+  .modal h3{margin:0 0 8px;font-size:16px}
+  .modal .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  .modal .acts .cancel{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:9px 14px;font-size:13px}
+  .modal .acts .danger{background:var(--bad);border:none;color:#fff;font-weight:700;border-radius:9px;padding:9px 16px;font-size:13px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:11px 18px;border-radius:10px;box-shadow:var(--shadow);font-size:13px;opacity:0;transition:.25s;z-index:80}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .toast.err{border-color:var(--bad);color:var(--bad)}
+  th.rvsort{cursor:pointer;user-select:none}
+  th.rvsort:hover{color:var(--txt)}
+  th.rvsort.on{color:var(--accent)}
+  th.rvsort .arw{font-size:10px;margin-left:3px}
+  tbody tr.eseg td{color:var(--muted)}
+  .subline{display:block;color:var(--muted);font-size:11px;font-weight:400}
+  .pill-eseg{display:inline-block;background:var(--ok);color:#04121f;border:none;border-radius:10px;padding:4px 11px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .pill-eseg:hover{filter:brightness(1.08)}
+  .pill-eseg:disabled{opacity:.55;cursor:wait}
+  .badge-wait{display:inline-block;background:rgba(245,165,36,.18);color:var(--warn);border:1px solid rgba(245,165,36,.4);border-radius:10px;padding:3px 9px;font-size:12px;font-weight:700;white-space:nowrap}
+  .btn-undo{background:transparent;border:1px solid var(--muted);color:var(--muted);border-radius:8px;padding:3px 9px;font-size:12px;font-weight:600;cursor:pointer;margin-left:6px;white-space:nowrap}
+  .btn-undo:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="stg-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#b45309;color:#fff;font:600 12px/24px system-ui,Arial,sans-serif;text-align:center;height:24px;letter-spacing:.3px;pointer-events:none;box-shadow:0 -1px 4px rgba(0,0,0,.35)">⚠️ AMBIENTE DI STAGING — I dati non sono reali</div>
+
+<div id="login">
+  <div class="card">
+    <div class="brand"><div class="dot">S</div><h1>StockView</h1></div>
+    <div class="sub">Revisioni · accesso riservato</div>
+    <form id="loginForm">
+      <label for="email">Email</label><input id="email" type="email" autocomplete="username" required />
+      <label for="pwd">Password</label><input id="pwd" type="password" autocomplete="current-password" required />
+      <button class="btn" id="loginBtn" type="submit">Accedi</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="brand"><div class="dot">S</div><h1>StockView</h1></div>
+    <nav>
+      <a href="presenza.html">Controllo presenza</a>
+      <a href="assortimento.html">Assortimento ideale</a>
+      <a href="ricircolo.html">Ricircolo</a>
+
+      <a href="revisioni.html" class="cur">Aggiornamenti</a>
+    </nav>
+    <div class="spacer"></div>
+    <a href="impostazioni.html" style="color:var(--muted);text-decoration:none;font-size:13px;font-weight:600;margin-right:14px">Impostazioni</a>
+    <span class="who" id="who"></span>
+    <button class="ghost" id="logout">Esci</button>
+  </header>
+
+  <div class="wrap">
+    <h2 class="pagetitle">Revisioni cambio categoria</h2>
+    <div id="content"></div>
+    <h2 class="pagetitle" style="margin-top:28px">Correzioni magazzino richieste</h2>
+    <p style="color:var(--muted);margin:-6px 0 12px;font-size:13px">Articoli non trovati durante il ricircolo — da correggere nel gestionale</p>
+    <div id="nonTrovati"></div>
+  </div>
+</div>
+
+<div class="modal-back" id="modalBack"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://ujrktzslichvrgpyoela.supabase.co";
+const SUPABASE_KEY="sb_publishable_0mNbCOZLSV-ug9iJ9jLrNA_RabyY_LM";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+/* === Visualizza come... (simulazione ruolo admin) === */
+(function(){
+  if(window.__svSimInstalled) return; window.__svSimInstalled=true;
+  var FIL={D:'Catania',I:'Portali',G:'Giarre',Z:'Viale Africa',C:'Acireale',E:'Augusta',H:'Lentini',B:'Paternò'};
+  var ORDER=['D','I','G','Z','C','E','H','B'];
+  function sg(k){try{return sessionStorage.getItem(k);}catch(e){return null;}}
+  function ssv(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}
+  function sd(k){try{sessionStorage.removeItem(k);}catch(e){}}
+  var simRole=sg('sv_sim_role'), simFil=sg('sv_sim_filiale');
+  var _orig=(typeof sb!=='undefined'&&sb.auth&&sb.auth.getSession)?sb.auth.getSession.bind(sb.auth):null;
+  var _origU=(typeof sb!=='undefined'&&sb.auth&&sb.auth.getUser)?sb.auth.getUser.bind(sb.auth):null;
+  function ovMeta(m){return Object.assign({},m||{},{role:simRole,filiale:(simRole==='vendita'?simFil:null)});}
+  if(_orig){ sb.auth.getSession=async function(){ var r=await _orig(); try{ var s=r&&r.data&&r.data.session; if(s){ var rr=s.user&&s.user.user_metadata&&s.user.user_metadata.role; window.__SV_REAL_ROLE=rr; if(rr==='admin'&&simRole&&simRole!=='admin'){ var nu=Object.assign({},s.user,{user_metadata:ovMeta(s.user.user_metadata)}); return {data:{session:Object.assign({},s,{user:nu})},error:r.error}; } } }catch(e){} return r; }; }
+  if(_origU){ sb.auth.getUser=async function(){ var r=await _origU(); try{ var u=r&&r.data&&r.data.user; if(u){ var rr=u.user_metadata&&u.user_metadata.role; if(rr==='admin'&&simRole&&simRole!=='admin'){ return {data:{user:Object.assign({},u,{user_metadata:ovMeta(u.user_metadata)})},error:r.error}; } } }catch(e){} return r; }; }
+  if(typeof sb!=='undefined'&&sb.auth&&sb.auth.signOut){ var _so=sb.auth.signOut.bind(sb.auth); sb.auth.signOut=function(){ sd('sv_sim_role'); sd('sv_sim_filiale'); return _so.apply(null,arguments); }; }
+  function lbl(role,fil){ if(role==='admin')return 'Admin'; if(role==='gestore')return 'Gestore'; if(role==='vendita')return 'Vendita → '+(FIL[fil]||fil||'?'); return role; }
+  function setSim(role,fil){ if(role==='admin'){ sd('sv_sim_role'); sd('sv_sim_filiale'); } else { ssv('sv_sim_role',role); if(role==='vendita'&&fil) ssv('sv_sim_filiale',fil); else sd('sv_sim_filiale'); } location.reload(); }
+  function buildUI(){
+    if(simRole){ var bn=document.createElement('div'); bn.id='svSimBanner'; bn.style.cssText='background:#f5a524;color:#3a2a00;font-weight:700;font-size:13px;text-align:center;padding:8px 12px;cursor:pointer'; bn.textContent='⚠ Vista simulata: '+lbl(simRole,simFil)+' — Clicca per tornare ad Admin'; bn.onclick=function(){ setSim('admin'); }; var nv=document.querySelector('nav'); var hdr=nv?(nv.closest('header')||nv.parentElement):null; if(hdr&&hdr.parentNode){ hdr.parentNode.insertBefore(bn,hdr.nextSibling); } else if(document.body.firstChild){ document.body.insertBefore(bn,document.body.firstChild); } else { document.body.appendChild(bn); } }
+    var logout=document.getElementById('logout');
+    var wrap=document.createElement('span'); wrap.style.cssText='position:relative;display:inline-block';
+    var btn=document.createElement('button'); btn.type='button'; btn.textContent='👁 Visualizza come…'; btn.style.cssText='cursor:pointer;font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font-weight:600;margin-right:8px';
+    var menu=document.createElement('div'); menu.style.cssText='position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:210px;z-index:99999;display:none;overflow:hidden';
+    var items=[['👤 Admin (attuale)','admin',null],['👤 Gestore','gestore',null]];
+    ORDER.forEach(function(c){ items.push(['👤 Vendita → '+FIL[c],'vendita',c]); });
+    items.forEach(function(it){ var a=document.createElement('div'); a.textContent=it[0]; var active=((it[1]==='admin'&&!simRole)||(it[1]===simRole&&(it[1]!=='vendita'||it[2]===simFil))); a.style.cssText='padding:8px 12px;cursor:pointer;font-size:13px;white-space:nowrap;color:#1f2a37;'+(active?'font-weight:700;background:#eef3f9':''); a.onmouseover=function(){a.style.background='#dce7f3';}; a.onmouseout=function(){a.style.background=active?'#eef3f9':'';}; a.onclick=function(ev){ ev.stopPropagation(); setSim(it[1],it[2]); }; menu.appendChild(a); });
+    btn.onclick=function(e){ e.stopPropagation(); menu.style.display=(menu.style.display==='none'?'block':'none'); };
+    document.addEventListener('click',function(){ menu.style.display='none'; });
+    wrap.appendChild(btn); wrap.appendChild(menu);
+    if(logout&&logout.parentNode){ logout.parentNode.insertBefore(wrap,logout); } else { var nav=document.querySelector('nav'); if(nav&&nav.parentNode) nav.parentNode.appendChild(wrap); }
+  }
+  function init(){ (async function(){ var realAdmin=false; try{ if(_orig){ var r=await _orig(); var s=r&&r.data&&r.data.session; var rr=s&&s.user&&s.user.user_metadata&&s.user.user_metadata.role; realAdmin=(rr==='admin'); window.__SV_REAL_ROLE=rr; } }catch(e){} if(!realAdmin){ if(simRole){ sd('sv_sim_role'); sd('sv_sim_filiale'); } return; } buildUI(); })(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+let ROLE="gestore", isAdmin=false;
+
+function fmtDate(s){ if(!s)return"—"; try{ const d=new Date(s); return d.toLocaleDateString("it-IT")+" "+d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}); }catch(e){return s;} }
+
+/* ==== FIX 1+2: ordinamento colonne cliccabili + flag "Eseguito" ==== */
+var RVF={D:"Catania",I:"Portali",G:"Giarre",Z:"Viale Africa",C:"Acireale",E:"Augusta",H:"Lentini",B:"Paternò",A:"Deposito"};
+function ntFn(c){ return RVF[c]||c||""; }
+var CC_PEND=[], CC_COMP=[], NT_ROWS=[];
+var CC_SORT={key:"data",dir:"desc"}, CO_SORT={key:"data",dir:"desc"}, NT_SORT={key:"data",dir:"desc"};
+function sArrow(st,k){ return st.key===k?'<span class="arw">'+(st.dir==="asc"?"↑":"↓")+'</span>':""; }
+function sTh(st,k,label){ return '<th class="rvsort'+(st.key===k?" on":"")+'" data-k="'+k+'">'+esc(label)+sArrow(st,k)+'</th>'; }
+function sApply(rows,st,fn){ var d=st.dir==="asc"?1:-1; rows.sort(function(a,b){ var va=fn(a,st.key),vb=fn(b,st.key),c; if(typeof va==="number"&&typeof vb==="number")c=va-vb; else c=String(va).localeCompare(String(vb)); return c*d; }); return rows; }
+function sWire(host,st,rerender){ if(!host)return; host.querySelectorAll("th.rvsort").forEach(function(th){ th.onclick=function(){ var k=th.getAttribute("data-k"); if(st.key===k){ st.dir=(st.dir==="asc"?"desc":"asc"); } else { st.key=k; st.dir=(k==="data"||k==="giorni")?"desc":"asc"; } rerender(); }; }); }
+function ccVal(r,k){ if(k==="data")return r.richiesta_il?new Date(r.richiesta_il).getTime():0; if(k==="barcode")return r.barcode||""; if(k==="marchio")return r.marchio||""; if(k==="modello")return r.modello||""; if(k==="fornitore")return r.fornitore||""; if(k==="tipo")return r.tipo_lenti||""; if(k==="cata")return r.categoria_attuale||""; if(k==="catp")return r.categoria_proposta||""; if(k==="richda")return r.richiesta_da||""; return ""; }
+function coVal(r,k){ if(k==="data")return r.completata_il?new Date(r.completata_il).getTime():0; return ccVal(r,k); }
+function ntVal(r,k){ if(k==="data")return r.aggiornato_il?new Date(r.aggiornato_il).getTime():0; if(k==="barcode")return r.barcode||""; if(k==="marchio")return r.marchio||""; if(k==="modello")return r.modello||""; if(k==="da")return ntFn(r.filiale_da); if(k==="a")return ntFn(r.filiale_a); if(k==="segn")return r.aggiornato_da||""; if(k==="giorni"){ var ag=r.aggiornato_il?new Date(r.aggiornato_il).getTime():0; return ag?(Date.now()-ag):0; } return ""; }
+function subline(r){ var x=[r.colore,r.calibro].filter(Boolean).map(esc).join(" · "); return x?'<span class="subline">'+x+'</span>':""; }
+function isEseg(note){ return String(note||"").indexOf("Eseguito")===0; }
+async function myEmail(){ try{ var s=await sb.auth.getSession(); return (s&&s.data&&s.data.session&&s.data.session.user&&s.data.session.user.email)||""; }catch(e){ return ""; } }
+
+async function ccEseguito(bt){ if(bt.disabled)return; bt.disabled=true; var id=bt.dataset.id, o=bt.textContent; bt.textContent="…"; var email=await myEmail();
+  try{ var r=await sb.from("richieste_cambio_categoria").update({stato_operatore:"eseguito",eseguito_da:email,eseguito_il:new Date().toISOString()}).eq("id",id); if(r.error)throw r.error; for(var i=0;i<CC_PEND.length;i++){ if(String(CC_PEND[i].id)===String(id)){ CC_PEND[i].stato_operatore="eseguito"; CC_PEND[i].eseguito_da=email; break; } } renderCC(); toast("Segnato come eseguito"); }catch(e){ bt.disabled=false; bt.textContent=o; toast("Errore: "+String((e&&e.message)||e),true); } }
+async function ccUndo(bt){ if(bt.disabled)return; bt.disabled=true; var id=bt.dataset.id;
+  try{ var r=await sb.from("richieste_cambio_categoria").update({stato_operatore:"pendente",eseguito_da:null,eseguito_il:null}).eq("id",id); if(r.error)throw r.error; for(var i=0;i<CC_PEND.length;i++){ if(String(CC_PEND[i].id)===String(id)){ CC_PEND[i].stato_operatore="pendente"; break; } } renderCC(); toast("Annullato"); }catch(e){ bt.disabled=false; toast("Errore: "+String((e&&e.message)||e),true); } }
+async function ntEseguito(bt){ if(bt.disabled)return; bt.disabled=true; var id=bt.dataset.id, o=bt.textContent; bt.textContent="…"; var email=await myEmail();
+  var note="Eseguito da "+email+" il "+new Date().toISOString().slice(0,10);
+  try{ var r=await sb.from("ricircoli").update({note:note}).eq("id",id).eq("stato","non_trovato"); if(r.error)throw r.error; for(var i=0;i<NT_ROWS.length;i++){ if(String(NT_ROWS[i].id)===String(id)){ NT_ROWS[i].note=note; break; } } renderNT(); toast("Segnato come eseguito"); }catch(e){ bt.disabled=false; bt.textContent=o; toast("Errore: "+String((e&&e.message)||e),true); } }
+async function ntUndo(bt){ if(bt.disabled)return; bt.disabled=true; var id=bt.dataset.id;
+  try{ var r=await sb.from("ricircoli").update({note:null}).eq("id",id); if(r.error)throw r.error; for(var i=0;i<NT_ROWS.length;i++){ if(String(NT_ROWS[i].id)===String(id)){ NT_ROWS[i].note=null; break; } } renderNT(); toast("Annullato"); }catch(e){ bt.disabled=false; toast("Errore: "+String((e&&e.message)||e),true); } }
+
+function renderCC(){
+  var host=$("#content"); if(!host)return;
+  var canEseg=(ROLE==="admin"||ROLE==="gestore");
+  var P=CC_PEND.slice(); sApply(P,CC_SORT,ccVal);
+  var C=CC_COMP.slice(); sApply(C,CO_SORT,coVal);
+  var h='';
+  h+='<div class="section-h">Richieste pendenti <span class="cnt">'+P.length+'</span></div>';
+  if(!P.length){ h+='<div class="notice">Nessuna richiesta pendente.</div>'; }
+  else{
+    var head='<tr>'+sTh(CC_SORT,"data","Data richiesta")+sTh(CC_SORT,"barcode","Barcode")+sTh(CC_SORT,"marchio","Marchio")+sTh(CC_SORT,"modello","Modello")+sTh(CC_SORT,"fornitore","Fornitore")+sTh(CC_SORT,"tipo","Tipo")+sTh(CC_SORT,"cata","Cat. attuale")+sTh(CC_SORT,"catp","Cat. proposta")+sTh(CC_SORT,"richda","Richiesta da")+'<th></th></tr>';
+    h+='<div class="tablewrap" id="ccPendWrap"><table><thead>'+head+'</thead><tbody>'+P.map(function(r){
+      var eseg=r.stato_operatore==="eseguito";
+      var act;
+      if(eseg){ act='<span class="badge-wait">⏳ Attesa conferma</span><button class="btn-undo ccUndo" data-id="'+esc(r.id)+'">↩ Annulla</button>'; }
+      else{ act=(canEseg?'<button class="pill-eseg ccEseg" data-id="'+esc(r.id)+'">✓ Eseguito</button>':''); if(isAdmin){ act+=(act?' ':'')+'<button class="btn-annulla ccDel" data-del="'+esc(r.id)+'" title="Elimina richiesta">🗑</button>'; } }
+      return '<tr class="'+(eseg?"eseg":"")+'">'+
+        '<td class="muted" style="white-space:nowrap">'+esc(fmtDate(r.richiesta_il))+'</td>'+
+        '<td>'+esc(r.barcode||"")+'</td>'+
+        '<td><b>'+esc(r.marchio||"—")+'</b></td>'+
+        '<td>'+esc(r.modello||"—")+subline(r)+'</td>'+
+        '<td>'+esc(r.fornitore||"—")+'</td>'+
+        '<td>'+esc(r.tipo_lenti||"—")+'</td>'+
+        '<td><span class="cat-att">'+esc(r.categoria_attuale||"—")+'</span></td>'+
+        '<td><span class="cat-pro">'+esc(r.categoria_proposta||"—")+'</span></td>'+
+        '<td class="muted">'+esc(r.richiesta_da||"—")+'</td>'+
+        '<td style="white-space:nowrap">'+act+'</td></tr>';
+    }).join("")+'</tbody></table></div>';
+  }
+  h+='<div class="section-h">Richieste completate <span class="cnt">'+C.length+(CC_COMP.length>=50?"+":"")+'</span></div>';
+  if(!C.length){ h+='<div class="notice">Nessuna richiesta completata.</div>'; }
+  else{
+    var head2='<tr>'+sTh(CO_SORT,"data","Completata il")+sTh(CO_SORT,"barcode","Barcode")+sTh(CO_SORT,"marchio","Marchio")+sTh(CO_SORT,"modello","Modello")+sTh(CO_SORT,"fornitore","Fornitore")+sTh(CO_SORT,"tipo","Tipo")+sTh(CO_SORT,"cata","Cat. attuale")+sTh(CO_SORT,"catp","Cat. proposta")+sTh(CO_SORT,"richda","Richiesta da")+'</tr>';
+    h+='<div class="tablewrap" id="ccCompWrap"><table><thead>'+head2+'</thead><tbody>'+C.map(function(r){
+      return '<tr>'+
+        '<td class="muted" style="white-space:nowrap">'+esc(fmtDate(r.completata_il))+'</td>'+
+        '<td>'+esc(r.barcode||"")+'</td>'+
+        '<td><b>'+esc(r.marchio||"—")+'</b></td>'+
+        '<td>'+esc(r.modello||"—")+subline(r)+'</td>'+
+        '<td>'+esc(r.fornitore||"—")+'</td>'+
+        '<td>'+esc(r.tipo_lenti||"—")+'</td>'+
+        '<td><span class="cat-att">'+esc(r.categoria_attuale||"—")+'</span></td>'+
+        '<td><span class="cat-pro">'+esc(r.categoria_proposta||"—")+'</span></td>'+
+        '<td class="muted">'+esc(r.richiesta_da||"—")+'</td></tr>';
+    }).join("")+'</tbody></table></div>';
+  }
+  host.innerHTML=h;
+  sWire(document.getElementById("ccPendWrap"),CC_SORT,renderCC);
+  sWire(document.getElementById("ccCompWrap"),CO_SORT,renderCC);
+  host.querySelectorAll(".ccEseg").forEach(function(b){ b.onclick=function(){ ccEseguito(b); }; });
+  host.querySelectorAll(".ccUndo").forEach(function(b){ b.onclick=function(){ ccUndo(b); }; });
+  host.querySelectorAll(".ccDel").forEach(function(b){ b.onclick=function(){ confirmDelete(b.dataset.del,b); }; });
+}
+
+function renderNT(){
+  var host=document.getElementById("nonTrovati"); if(!host)return;
+  var canEseg=(ROLE==="admin"||ROLE==="gestore");
+  if(!NT_ROWS.length){ host.innerHTML='<div style="color:var(--muted);padding:8px 0">Nessuna correzione richiesta. ✅</div>'; return; }
+  var rows=NT_ROWS.slice(); sApply(rows,NT_SORT,ntVal);
+  var head='<tr>'+sTh(NT_SORT,"data","Data segnalazione")+sTh(NT_SORT,"barcode","Barcode")+sTh(NT_SORT,"marchio","Marchio")+sTh(NT_SORT,"modello","Modello")+sTh(NT_SORT,"da","Da")+sTh(NT_SORT,"a","A")+sTh(NT_SORT,"segn","Segnalato da")+sTh(NT_SORT,"giorni","Giorni aperti")+'<th></th></tr>';
+  var today=Date.now();
+  var b=rows.map(function(x){
+    var ag=x.aggiornato_il?new Date(x.aggiornato_il):null;
+    var days=ag?Math.floor((today-ag.getTime())/86400000):0;
+    var eseg=isEseg(x.note);
+    var act;
+    if(eseg){ act='<span class="badge-wait">⏳ Attesa conferma</span><button class="btn-undo ntUndo" data-id="'+esc(x.id)+'">↩ Annulla</button>'; }
+    else{ act=(canEseg?'<button class="pill-eseg ntEseg" data-id="'+esc(x.id)+'">✓ Eseguito</button>':''); if(isAdmin){ act+=(act?' ':'')+'<button class="btn-ripristina ntRip" data-id="'+esc(x.id)+'">↩ Ripristina</button>'; } }
+    return '<tr class="'+(eseg?"eseg":"")+'" data-rid="'+esc(x.id)+'">'+
+      '<td style="white-space:nowrap">'+(ag?ag.toLocaleDateString("it-IT"):"-")+'</td>'+
+      '<td>'+esc(x.barcode||"")+'</td>'+
+      '<td><b>'+esc(x.marchio||"—")+'</b></td>'+
+      '<td>'+esc(x.modello||"—")+subline(x)+'</td>'+
+      '<td>'+esc(ntFn(x.filiale_da))+'</td>'+
+      '<td>'+esc(ntFn(x.filiale_a))+'</td>'+
+      '<td class="muted">'+esc(x.aggiornato_da||"")+'</td>'+
+      '<td>'+days+'g</td>'+
+      '<td style="white-space:nowrap">'+act+'</td></tr>';
+  }).join("");
+  host.innerHTML='<div class="tablewrap" id="ntWrap"><table><thead>'+head+'</thead><tbody>'+b+'</tbody></table></div>';
+  sWire(document.getElementById("ntWrap"),NT_SORT,renderNT);
+  host.querySelectorAll(".ntEseg").forEach(function(bt){ bt.onclick=function(){ ntEseguito(bt); }; });
+  host.querySelectorAll(".ntUndo").forEach(function(bt){ bt.onclick=function(){ ntUndo(bt); }; });
+  host.querySelectorAll(".ntRip").forEach(function(bt){ bt.onclick=function(){ rcRipristina(bt,host); }; });
+}
+
+async function boot(){ const {data:{session}}=await sb.auth.getSession(); if(session) showApp(session); else $("#login").style.display="flex"; }
+async function loadNonTrovati(){
+  var host=document.getElementById("nonTrovati"); if(!host)return;
+  host.innerHTML='<div style="color:var(--muted)">Caricamento…</div>';
+  try{
+    var r=await sb.from("ricircoli").select("*").eq("stato","non_trovato").order("aggiornato_il",{ascending:false});
+    if(r.error)throw r.error;
+    NT_ROWS=r.data||[];
+    renderNT();
+  }catch(e){ host.innerHTML='<div style="color:var(--bad)">Errore: '+esc(String((e&&e.message)||e))+'</div>'; }
+}
+async function rcRipristina(bt, host){
+  if(bt.disabled) return;
+  var id=bt.dataset.id;
+  bt.disabled=true; var orig=bt.textContent; bt.textContent="…";
+  try{
+    var email=await myEmail();
+    var res=await sb.from("ricircoli").update({stato:"pending",aggiornato_il:new Date().toISOString(),aggiornato_da:email||null}).eq("id",id);
+    if(res.error)throw res.error;
+    NT_ROWS=NT_ROWS.filter(function(x){ return String(x.id)!==String(id); });
+    renderNT();
+    toast("Ripristinato");
+  }catch(e){
+    bt.disabled=false; bt.textContent=orig;
+    toast("Errore: "+String((e&&e.message)||e),true);
+  }
+}
+async function showApp(session){
+  $("#login").style.display="none"; $("#app").style.display="block";
+  const meta=session.user.user_metadata||{};
+  ROLE=(meta.role==="admin")?"admin":"gestore"; isAdmin=ROLE==="admin"; try{ var _rr=meta.role||'gestore'; var _pp=await sb.from('ruoli_permessi').select('puo_accedere,puo_modificare').eq('ruolo',_rr).eq('pagina','aggiornamenti').maybeSingle(); var _pd=_pp.data; if(_rr!=='admin'){ if(!(_pd&&_pd.puo_accedere)){ location.replace('ricircolo.html?denied=1'); return; } isAdmin=!!(_pd&&_pd.puo_modificare); } }catch(e){}
+  $("#who").innerHTML=esc(session.user.email)+' <span class="rolechip '+ROLE+'">'+ROLE+'</span>';
+  await loadAll();
+  loadNonTrovati();
+}
+$("#loginForm").addEventListener("submit",async e=>{ e.preventDefault(); const b=$("#loginBtn"),er=$("#loginErr"); er.textContent=""; b.disabled=true; b.textContent="Accesso…";
+  const {data,error}=await sb.auth.signInWithPassword({email:$("#email").value.trim(),password:$("#pwd").value});
+  b.disabled=false; b.textContent="Accedi"; if(error){er.textContent=error.message.includes("Invalid")?"Email o password non corretti.":error.message;return;} showApp(data.session); });
+$("#logout").addEventListener("click",async()=>{ await sb.auth.signOut(); location.reload(); });
+
+async function loadAll(){
+  $("#content").innerHTML='<div class="status">Carico…</div>';
+  const pend=await sb.from("richieste_cambio_categoria").select("*").eq("stato","pendente").order("richiesta_il",{ascending:false});
+  const comp=await sb.from("richieste_cambio_categoria").select("*").eq("stato","completata").order("completata_il",{ascending:false}).limit(50);
+  if(pend.error){ $("#content").innerHTML='<div class="notice" style="color:var(--bad)">Errore: '+esc(pend.error.message)+'</div>'; return; }
+  CC_PEND=pend.data||[]; CC_COMP=comp.data||[];
+  renderCC();
+}
+
+function confirmDelete(id){
+  openModal('<h3>Annulla richiesta</h3>'+
+    '<div style="color:var(--muted);font-size:13px;margin:8px 0 4px">Eliminare definitivamente questa richiesta di cambio categoria? L\'operazione non è reversibile.</div>'+
+    '<div class="err" id="delErr"></div>'+
+    '<div class="acts"><button class="cancel" id="delCancel">Chiudi</button><button class="danger" id="delOk">Elimina</button></div>');
+  $("#delCancel").onclick=closeModal;
+  $("#delOk").onclick=async()=>{
+    $("#delOk").disabled=true;
+    const r=await sb.from("richieste_cambio_categoria").delete().eq("id",id);
+    $("#delOk").disabled=false;
+    if(r.error){ $("#delErr").textContent="Errore: "+r.error.message; return; }
+    closeModal(); await loadAll(); toast("Richiesta eliminata");
+  };
+}
+
+function openModal(html){ $("#modal").innerHTML=html; $("#modalBack").classList.add("open"); }
+function closeModal(){ $("#modalBack").classList.remove("open"); $("#modal").innerHTML=""; }
+$("#modalBack").addEventListener("click",e=>{ if(e.target.id==="modalBack")closeModal(); });
+let toastT=null;
+function toast(msg,isErr){ const el=$("#toast"); el.textContent=msg; el.className="toast show"+(isErr?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>el.className="toast"+(isErr?" err":""),2600); }
+
+boot();
+</script>
+
+<script>
+/* STEP3-E redirect fornitore a presenza */
+(function(){ window.__fornRedirect=1; (async function(){ try{ if(sessionStorage.getItem('sv_sim_role')==='fornitore'){ location.replace('presenza.html'); return; } if(typeof sb==='undefined'||!sb) return; var u=await sb.auth.getUser(); var uid=u&&u.data&&u.data.user&&u.data.user.id; if(!uid) return; var r=await sb.from('user_fornitori').select('user_id').eq('user_id',uid).maybeSingle(); if(r&&r.data){ location.replace('presenza.html'); } }catch(e){} })(); })();
+</script>
+</body>
+</html>
