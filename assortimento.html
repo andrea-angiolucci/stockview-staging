@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StockView — Assortimento ideale</title>
+<style>
+  :root{--bg:#f4f6f9;--panel:#fff;--ink:#1f2a37;--muted:#6b7785;--line:#e3e8ef;--accent:#2b7fd6;--accent2:#1f6ac0;--ok:#1aa974;--bad:#e5484d;--chip:#eef3f9;--shadow:0 6px 22px rgba(20,40,70,.08)}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:32px 28px;width:100%;max-width:360px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand .dot{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7c5cff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
+  .brand h1{font-size:18px;margin:0}
+  .sub{color:var(--muted);font-size:12.5px;margin:6px 0 18px}
+  label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px}
+  input[type=email],input[type=password],input[type=text]{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:14px;outline:none}
+  input:focus{border-color:var(--accent)}
+  button{cursor:pointer;font-family:inherit}
+  .btn{width:100%;margin-top:18px;padding:11px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-weight:600;font-size:14.5px}
+  .btn:hover{background:var(--accent2)}
+  .err{color:var(--bad);font-size:12.5px;margin-top:12px;min-height:15px}
+  #app{display:none}
+  header{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--line);padding:10px 18px;display:flex;align-items:center;gap:18px}
+  header .brand h1{font-size:15px}
+  nav{display:flex;gap:14px}
+  nav a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:600;padding:4px 2px;border-bottom:2px solid transparent}
+  nav a:hover{color:var(--accent)}
+  nav a.cur{color:var(--accent);border-bottom-color:var(--accent)}
+  .spacer{flex:1}
+  .who{color:var(--muted);font-size:12.5px}
+  .ghost{background:#fff;border:1px solid var(--line);color:var(--muted);padding:6px 11px;border-radius:8px;font-size:12.5px}
+  .ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .wrap{max-width:1500px;margin:0 auto;padding:18px}
+  .bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{background:#fff;border:none;padding:9px 18px;font-size:14px;color:var(--muted);font-weight:600}
+  .seg button.on{background:var(--accent);color:#fff}
+  select.forn{padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;background:#fff;color:var(--ink)}
+  .spacer{flex:1}
+  .addbox{display:flex;gap:6px;align-items:center}
+  .addbox input{width:210px}
+  .addbtn{background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:9px 13px;font-size:13px;color:var(--ink);font-weight:600}
+  .addbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .savebtn{background:var(--ok);border:none;color:#fff;border-radius:8px;padding:10px 18px;font-weight:700;font-size:13.5px}
+  .savebtn:disabled{opacity:.5}
+  .legend{color:var(--muted);font-size:12px;margin:0 0 12px}
+  .legend b{color:var(--ink)}
+  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:var(--shadow)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{padding:7px 9px;text-align:center;border-bottom:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap}
+  thead th{position:sticky;top:0;background:#f1f5fa;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;z-index:5}
+  th.mar,td.mar{text-align:left;position:sticky;left:0;background:#fff;z-index:4;font-weight:600;min-width:180px}
+  thead th.mar{z-index:6;background:#f1f5fa}
+  tbody tr:hover td{background:#f7fafc}
+  tbody tr:hover td.mar{background:#eef4fb}
+  td input.q{width:54px;text-align:center;border:1px solid transparent;border-radius:6px;padding:5px 2px;font-size:13px;background:transparent;color:var(--ink)}
+  td input.q:focus{border-color:var(--accent);background:#fff}
+  td.has input.q{font-weight:700;color:var(--accent2)}
+  td.tot,th.tot{background:#f1f5fa;font-weight:700;border-left:2px solid var(--line)}
+  tfoot td{background:#eef4fb;font-weight:700;border-top:2px solid var(--line);position:sticky;bottom:0}
+  tfoot td.mar{background:#e4eef9}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:9px;font-size:13.5px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1}
+  .qd{padding:4px 6px;border-radius:6px;background:#fff;border:1px solid var(--line);color:var(--ink);font-size:12px}
+  .deltacell{text-align:center;font-weight:700;font-size:13px}
+  .deltacell.dpos{color:var(--ok)}
+  .deltacell.dneg{color:var(--bad);background:rgba(229,72,77,.10)}
+  .deltacell.dgrey{color:var(--muted);opacity:.7}
+  .dtoggle{background:#fff;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px}
+  .dtoggle.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+  .delrow{margin-left:6px;background:transparent;border:none;color:var(--bad);cursor:pointer;font-size:14px;opacity:.55}
+  .delrow:hover{opacity:1}
+  body.notadmin .adminonly{display:none!important}
+  .amback{position:fixed;inset:0;background:rgba(20,30,50,.45);display:none;align-items:center;justify-content:center;z-index:100}
+  .amback.open{display:flex}
+  .ammodal{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;width:390px;max-width:92vw;box-shadow:var(--shadow)}
+  .ammodal label{font-size:12px;color:var(--muted)}
+  .ammodal input,.ammodal select{color:var(--ink)}
+  .amdepths{max-height:150px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px;margin-top:4px}
+  .amdrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:3px 4px}
+  .amdrow span{font-size:12px;color:var(--ink)}
+  td.dep0{color:var(--muted)}
+  td.dep7{background:rgba(26,169,116,.14);color:#1aa974}
+  td.dep14{background:rgba(214,158,20,.18);color:#a9791a}
+  td.dep21{background:rgba(230,120,30,.16);color:#c76a12}
+  td.dep28{background:rgba(43,127,214,.14);color:var(--accent)}
+  td.dep7,td.dep14,td.dep21,td.dep28{font-weight:700;text-align:center}
+  input.qi{width:46px;text-align:center;background:transparent;border:1px solid var(--line);border-radius:5px;color:inherit;font-weight:700;font-size:12px;padding:3px 2px}
+  input.qi:focus{outline:2px solid var(--accent);outline-offset:0}
+  #subToggles{display:none;gap:6px;align-items:center;margin-left:6px}
+  .dpill{background:#fff;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:5px 11px;cursor:pointer;font-size:12px}
+  .dpill.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .deltacell{line-height:1.3}
+  .deltacell.np{opacity:.8}
+  .deltacell .dl-ideale{font-weight:700}
+  .deltacell .dl-ideale.dep0{color:var(--muted)}
+  .deltacell .dl-ideale.dep7{color:#1aa974}
+  .deltacell .dl-ideale.dep14{color:#a9791a}
+  .deltacell .dl-ideale.dep21{color:#c76a12}
+  .deltacell .dl-ideale.dep28{color:var(--accent)}
+  .deltacell .dl-giac{color:var(--ink)}
+  .deltacell .dl-diff{font-weight:700}
+  .deltacell .dl-diff.dpos{color:var(--ok)}
+  .deltacell .dl-diff.dneg{color:var(--bad)}
+  .deltacell .dl-diff.dzero{color:var(--muted)}
+  td.tot .dl-ideale{font-weight:700}
+  td.tot .dl-giac{color:var(--ink)}
+  td.tot .dl-diff{font-weight:700}
+  td.tot .dl-diff.dpos{color:var(--ok)}
+  td.tot .dl-diff.dneg{color:var(--bad)}
+  td.tot .dl-diff.dzero{color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="stg-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#b45309;color:#fff;font:600 12px/24px system-ui,Arial,sans-serif;text-align:center;height:24px;letter-spacing:.3px;pointer-events:none;box-shadow:0 -1px 4px rgba(0,0,0,.35)">⚠️ AMBIENTE DI STAGING — I dati non sono reali</div>
+
+<div id="login">
+  <div class="card">
+    <div class="brand"><div class="dot">S</div><h1>StockView</h1></div>
+    <div class="sub">Assortimento ideale · accesso riservato</div>
+    <form id="loginForm">
+      <label for="email">Email</label><input id="email" type="email" autocomplete="username" required />
+      <label for="pwd">Password</label><input id="pwd" type="password" autocomplete="current-password" required />
+      <button class="btn" id="loginBtn" type="submit">Accedi</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="brand"><div class="dot">S</div><h1>StockView</h1></div>
+    <nav>
+      <a href="presenza.html">Controllo presenza</a>
+      <a href="assortimento.html" class="cur">Assortimento ideale</a>
+    <a href="ricircolo.html">Ricircolo</a>
+    
+    <a href="revisioni.html" id="navRevisioni" style="display:none">Aggiornamenti</a>
+    </nav>
+    <div class="spacer"></div>
+    <a href="impostazioni.html" style="color:var(--muted);text-decoration:none;font-size:13px;font-weight:600;margin-right:14px">Impostazioni</a>
+    <span class="who" id="who"></span>
+    <button class="ghost" id="logout">Esci</button>
+  </header>
+
+  <div class="wrap">
+    <div class="bar">
+      <select class="forn" id="forn"><option value="">Tutti i fornitori</option></select>
+      <div class="seg" id="seg">
+        <button data-t="Vista" class="on">Vista</button>
+        <button data-t="Sole">Sole</button>
+      </div>
+      <div class="spacer"></div>
+      <button class="dtoggle" id="deltaBtn" title="Delta disponibile vs ideale">△ Delta ideale</button><span id="subToggles"><button class="dpill" id="subIdealeBtn">Ideale</button><button class="dpill" id="subGiacBtn">Giacenza</button><button class="dpill" id="subDiffBtn">Differenza</button></span>
+        <button class="addbtn adminonly" id="addBtn">+ Aggiungi marchio</button>
+        <button class="savebtn adminonly" id="saveBtn">Salva modifiche</button>
+    </div>
+    <div class="legend">Profondità: <b>7</b>=ST · <b>14</b>=ST+P1 · <b>21</b>=ST+P1+P2 · <b>28</b>=+P3 · <b>35</b>=+P4 … (vuoto/0 = linea spenta). Totali riga/colonna in tempo reale. Il <b>fornitore</b> filtra i marchi mostrati.</div>
+    <div class="tablewrap"><table id="tbl"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+    <div class="miss" id="miss"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://ujrktzslichvrgpyoela.supabase.co";
+const SUPABASE_KEY="sb_publishable_0mNbCOZLSV-ug9iJ9jLrNA_RabyY_LM";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+/* === Visualizza come... (simulazione ruolo admin) === */
+(function(){
+  if(window.__svSimInstalled) return; window.__svSimInstalled=true;
+  var FIL={D:'Catania',I:'Portali',G:'Giarre',Z:'Viale Africa',C:'Acireale',E:'Augusta',H:'Lentini',B:'Paternò'};
+  var ORDER=['D','I','G','Z','C','E','H','B'];
+  function sg(k){try{return sessionStorage.getItem(k);}catch(e){return null;}}
+  function ssv(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}
+  function sd(k){try{sessionStorage.removeItem(k);}catch(e){}}
+  var simRole=sg('sv_sim_role'), simFil=sg('sv_sim_filiale');
+  var _orig=(typeof sb!=='undefined'&&sb.auth&&sb.auth.getSession)?sb.auth.getSession.bind(sb.auth):null;
+  var _origU=(typeof sb!=='undefined'&&sb.auth&&sb.auth.getUser)?sb.auth.getUser.bind(sb.auth):null;
+  function ovMeta(m){return Object.assign({},m||{},{role:simRole,filiale:(simRole==='vendita'?simFil:null)});}
+  if(_orig){ sb.auth.getSession=async function(){ var r=await _orig(); try{ var s=r&&r.data&&r.data.session; if(s){ var rr=s.user&&s.user.user_metadata&&s.user.user_metadata.role; window.__SV_REAL_ROLE=rr; if(rr==='admin'&&simRole&&simRole!=='admin'){ var nu=Object.assign({},s.user,{user_metadata:ovMeta(s.user.user_metadata)}); return {data:{session:Object.assign({},s,{user:nu})},error:r.error}; } } }catch(e){} return r; }; }
+  if(_origU){ sb.auth.getUser=async function(){ var r=await _origU(); try{ var u=r&&r.data&&r.data.user; if(u){ var rr=u.user_metadata&&u.user_metadata.role; if(rr==='admin'&&simRole&&simRole!=='admin'){ return {data:{user:Object.assign({},u,{user_metadata:ovMeta(u.user_metadata)})},error:r.error}; } } }catch(e){} return r; }; }
+  if(typeof sb!=='undefined'&&sb.auth&&sb.auth.signOut){ var _so=sb.auth.signOut.bind(sb.auth); sb.auth.signOut=function(){ sd('sv_sim_role'); sd('sv_sim_filiale'); return _so.apply(null,arguments); }; }
+  function lbl(role,fil){ if(role==='admin')return 'Admin'; if(role==='gestore')return 'Gestore'; if(role==='vendita')return 'Vendita → '+(FIL[fil]||fil||'?'); return role; }
+  function setSim(role,fil){ if(role==='admin'){ sd('sv_sim_role'); sd('sv_sim_filiale'); } else { ssv('sv_sim_role',role); if(role==='vendita'&&fil) ssv('sv_sim_filiale',fil); else sd('sv_sim_filiale'); } location.reload(); }
+  function buildUI(){
+    if(simRole){ var bn=document.createElement('div'); bn.id='svSimBanner'; bn.style.cssText='background:#f5a524;color:#3a2a00;font-weight:700;font-size:13px;text-align:center;padding:8px 12px;cursor:pointer'; bn.textContent='⚠ Vista simulata: '+lbl(simRole,simFil)+' — Clicca per tornare ad Admin'; bn.onclick=function(){ setSim('admin'); }; var nv=document.querySelector('nav'); var hdr=nv?(nv.closest('header')||nv.parentElement):null; if(hdr&&hdr.parentNode){ hdr.parentNode.insertBefore(bn,hdr.nextSibling); } else if(document.body.firstChild){ document.body.insertBefore(bn,document.body.firstChild); } else { document.body.appendChild(bn); } }
+    var logout=document.getElementById('logout');
+    var wrap=document.createElement('span'); wrap.style.cssText='position:relative;display:inline-block';
+    var btn=document.createElement('button'); btn.type='button'; btn.textContent='👁 Visualizza come…'; btn.style.cssText='cursor:pointer;font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font-weight:600;margin-right:8px';
+    var menu=document.createElement('div'); menu.style.cssText='position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:210px;z-index:99999;display:none;overflow:hidden';
+    var items=[['👤 Admin (attuale)','admin',null],['👤 Gestore','gestore',null]];
+    ORDER.forEach(function(c){ items.push(['👤 Vendita → '+FIL[c],'vendita',c]); });
+    items.forEach(function(it){ var a=document.createElement('div'); a.textContent=it[0]; var active=((it[1]==='admin'&&!simRole)||(it[1]===simRole&&(it[1]!=='vendita'||it[2]===simFil))); a.style.cssText='padding:8px 12px;cursor:pointer;font-size:13px;white-space:nowrap;color:#1f2a37;'+(active?'font-weight:700;background:#eef3f9':''); a.onmouseover=function(){a.style.background='#dce7f3';}; a.onmouseout=function(){a.style.background=active?'#eef3f9':'';}; a.onclick=function(ev){ ev.stopPropagation(); setSim(it[1],it[2]); }; menu.appendChild(a); });
+    btn.onclick=function(e){ e.stopPropagation(); menu.style.display=(menu.style.display==='none'?'block':'none'); };
+    document.addEventListener('click',function(){ menu.style.display='none'; });
+    wrap.appendChild(btn); wrap.appendChild(menu);
+    if(logout&&logout.parentNode){ logout.parentNode.insertBefore(wrap,logout); } else { var nav=document.querySelector('nav'); if(nav&&nav.parentNode) nav.parentNode.appendChild(wrap); }
+  }
+  function init(){ (async function(){ var realAdmin=false; try{ if(_orig){ var r=await _orig(); var s=r&&r.data&&r.data.session; var rr=s&&s.user&&s.user.user_metadata&&s.user.user_metadata.role; realAdmin=(rr==='admin'); window.__SV_REAL_ROLE=rr; } }catch(e){} if(!realAdmin){ if(simRole){ sd('sv_sim_role'); sd('sv_sim_filiale'); } return; } buildUI(); })(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+const $=s=>document.querySelector(s);
+let PDV=[];                  // [{codice,nome}]
+let DATA={Vista:{},Sole:{}}; // DATA[tipo][marchio][codice]=qty
+let FORN={};                 // marchio -> fornitore
+let tab="Vista"; let dirty=false; let isAdmin=false; let deltaOn=(sessionStorage.getItem("asqDelta")==="1"); let subIdeale=(sessionStorage.getItem("asqIdeale")!=="0"); let subGiac=(sessionStorage.getItem("asqGiac")!=="0"); let subDiff=(sessionStorage.getItem("asqDiff")!=="0"); let ADISP={}; let ADISP_tab=null; const A_LADDER=["ST","P1","P2","P3","P4"]; const A_STEP=7;
+
+async function boot(){const {data:{session}}=await sb.auth.getSession(); if(session) showApp(session); else $("#login").style.display="flex";}
+async function showApp(session){$("#login").style.display="none";$("#app").style.display="block";$("#who").textContent=session.user.email; isAdmin=!!(session.user.user_metadata&&session.user.user_metadata.role==="admin"); try{ var _rr=(session.user.user_metadata&&session.user.user_metadata.role)||'gestore'; var _pp=await sb.from('ruoli_permessi').select('puo_accedere,puo_modificare').eq('ruolo',_rr).eq('pagina','assortimento').maybeSingle(); var _pd=_pp.data; if(_rr!=='admin'){ if(!(_pd&&_pd.puo_accedere)){ location.replace('ricircolo.html?denied=1'); return; } isAdmin=!!(_pd&&_pd.puo_modificare); } }catch(e){} document.body.classList.toggle("notadmin",!isAdmin); await load();}
+$("#loginForm").addEventListener("submit",async e=>{e.preventDefault();const b=$("#loginBtn"),er=$("#loginErr");er.textContent="";b.disabled=true;b.textContent="Accesso…";
+  const {data,error}=await sb.auth.signInWithPassword({email:$("#email").value.trim(),password:$("#pwd").value});
+  b.disabled=false;b.textContent="Accedi"; if(error){er.textContent=error.message.includes("Invalid")?"Email o password non corretti.":error.message;return;} showApp(data.session);});
+$("#logout").addEventListener("click",async()=>{await sb.auth.signOut();location.reload();});
+
+var ESCLUSI_FORNITORI=new Set(), ESCLUSI_MARCHI=new Set(), MARCHI_ATTIVI={};
+async function loadMasterFilters(){ try{ var res=await Promise.all([ sb.from("esclusioni_master").select("tipo,valore").eq("escluso",true), sb.from("marchi_fornitori_attivi").select("marchio,fornitore_attivo") ]); ESCLUSI_FORNITORI=new Set(); ESCLUSI_MARCHI=new Set(); MARCHI_ATTIVI={}; (res[0].data||[]).forEach(function(x){ if(x.tipo==="fornitore")ESCLUSI_FORNITORI.add(x.valore); else if(x.tipo==="marchio")ESCLUSI_MARCHI.add(x.valore); }); (res[1].data||[]).forEach(function(x){ MARCHI_ATTIVI[x.marchio]=x.fornitore_attivo; }); }catch(e){} }
+async function load(){
+  await loadMasterFilters();
+  const [{data:fil},{data:rows},{data:marchi}]=await Promise.all([
+    sb.from("filiali").select("codice,nome,tipo,attiva"),
+    sb.from("assortimento_marchio").select("marchio,tipo_lenti,filiale,qty_ideale,fornitore"),
+    sb.rpc("sv_marchi")
+  ]);
+  const usate=new Set((rows||[]).map(r=>r.filiale));
+  PDV=(fil||[]).filter(f=>usate.has(f.codice)).sort((a,b)=>a.nome.localeCompare(b.nome)).map(f=>({codice:f.codice,nome:f.nome}));
+  DATA={Vista:{},Sole:{}}; FORN={};
+  for(const r of (rows||[])){ (DATA[r.tipo_lenti] ||= {}); (DATA[r.tipo_lenti][r.marchio] ||= {}); DATA[r.tipo_lenti][r.marchio][r.filiale]=r.qty_ideale; FORN[r.marchio]=r.fornitore||"Luxottica"; }
+  // selettore fornitore
+  const fornitori=[...new Set(Object.values(FORN))].filter(function(f){return !ESCLUSI_FORNITORI.has(f);}).sort();
+  $("#forn").innerHTML='<option value="">Tutti i fornitori</option>'+fornitori.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join("");
+  if(document.getElementById("marchiList"))$("#marchiList").innerHTML=(marchi||[]).map(m=>`<option value="${esc(typeof m==='string'?m:Object.values(m)[0])}">`).join("");
+  render();
+}
+
+$("#seg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;[...$("#seg").children].forEach(x=>x.classList.remove("on"));b.classList.add("on");tab=b.dataset.t; asqShowSpin(); if(deltaOn){loadDelta().then(function(){render();asqHideSpin();});}else{requestAnimationFrame(function(){render();asqHideSpin();});}});
+$("#forn").addEventListener("change",render);
+$("#deltaBtn").addEventListener("click",async function(){ deltaOn=!deltaOn; sessionStorage.setItem("asqDelta",deltaOn?"1":"0"); $("#deltaBtn").classList.toggle("on",deltaOn); applyDeltaUI(); if(deltaOn){ await loadDelta(); } render(); });
+function applyDeltaUI(){ var st=document.getElementById("subToggles"); if(st) st.style.display=deltaOn?"inline-flex":"none"; var a=document.getElementById("subIdealeBtn"),b=document.getElementById("subGiacBtn"),c=document.getElementById("subDiffBtn"); if(a)a.classList.toggle("on",subIdeale); if(b)b.classList.toggle("on",subGiac); if(c)c.classList.toggle("on",subDiff); }
+function _subWire(id,fn){ var el=document.getElementById(id); if(el) el.addEventListener("click",function(){ fn(); applyDeltaUI(); render(); }); }
+_subWire("subIdealeBtn",function(){ subIdeale=!subIdeale; sessionStorage.setItem("asqIdeale",subIdeale?"1":"0"); });
+_subWire("subGiacBtn",function(){ subGiac=!subGiac; sessionStorage.setItem("asqGiac",subGiac?"1":"0"); });
+_subWire("subDiffBtn",function(){ subDiff=!subDiff; sessionStorage.setItem("asqDiff",subDiff?"1":"0"); });
+$("#deltaBtn").classList.toggle("on",deltaOn); applyDeltaUI();
+if(deltaOn){ var _dn=0; var _div=setInterval(function(){ _dn++; if(typeof DATA!=="undefined" && DATA[tab] && Object.keys(DATA[tab]).length){ clearInterval(_div); loadDelta().then(render); } if(_dn>40) clearInterval(_div); },200); }
+
+function aQtyToN(q){ q=Number(q||0); return q>0?Math.min(Math.round(q/A_STEP),5):0; }
+function aDepthSelect(m,code,q){ var n=aQtyToN(q); var o='<option value="">Non previsto</option>'; for(var i=1;i<=5;i++){ o+='<option value="'+A_LADDER[i-1]+'"'+(i===n?" selected":"")+'>'+A_LADDER[i-1]+'</option>'; } return '<select class="qd" data-m="'+esc(m)+'" data-f="'+code+'">'+o+'</select>'; }
+function aDepthClass(q){ q=Number(q||0); if(q<=0) return "dep0"; if(q<=7) return "dep7"; if(q<=14) return "dep14"; if(q<=21) return "dep21"; return "dep28"; }
+function aQiInput(m,code,q){ return '<input class="qi" type="number" min="0" step="7" inputmode="numeric" data-m="'+esc(m)+'" data-f="'+code+'" value="'+(q>0?q:"")+'" placeholder="·" title="Quantità ideale (multipli di 7)">'; }
+async function aSaveCell(m,f,qty){ try{ var d=await sb.from("assortimento_marchio").delete().match({marchio:m,tipo_lenti:tab,filiale:f}); if(d&&d.error) throw d.error; if(qty>0){ var ins=await sb.from("assortimento_marchio").insert({marchio:m,tipo_lenti:tab,filiale:f,qty_ideale:qty,fornitore:FORN[m]||"Luxottica"}); if(ins&&ins.error) throw ins.error; } if(typeof toast==="function")toast("Salvato"); }catch(e){ if(typeof toast==="function")toast("Errore: "+((e&&e.message)||e)); } }
+async function onEditQi(e){ var s=e.target; var m=s.dataset.m, f=s.dataset.f; var qty=Math.max(0,Math.round(Number(s.value||0))); if(!DATA[tab][m])DATA[tab][m]={}; if(qty>0)DATA[tab][m][f]=qty; else delete DATA[tab][m][f]; s.value=qty>0?qty:""; var td=s.closest("td"); if(td) td.className=(qty>0?"has ":"")+aDepthClass(qty); if(typeof recalc==="function")recalc(); await aSaveCell(m,f,qty); }
+function aDeltaCellHTML(m,code,q,disp,has){ var d=disp-q; var rows=""; if(subIdeale){ rows+='<div class="dl-ideale '+aDepthClass(q)+'">'+(q>0?q:"·")+'</div>'; } if(subGiac){ rows+='<div class="dl-giac">'+disp+'</div>'; } if(subDiff){ var dc=d<0?"dneg":(d>0?"dpos":"dzero"); rows+='<div class="dl-diff '+dc+'">'+(d>0?"+":"")+d+'</div>'; } if(!rows) rows='<div class="dl-diff dzero">·</div>'; return '<td class="deltacell'+(has?"":" np")+'" title="ideale '+q+' · giacenza '+disp+' · diff '+(d>0?"+":"")+d+'">'+rows+'</td>'; }
+function aCellHTML(m,code){ var has=DATA[tab][m]&&Object.prototype.hasOwnProperty.call(DATA[tab][m],code); var q=has?Number(DATA[tab][m][code]||0):0;
+  if(deltaOn){ var disp=Number(ADISP[m+"|"+code]||0); return aDeltaCellHTML(m,code,q,disp,has); if(!has){ return '<td class="deltacell dgrey" title="filiale non prevista">'+(disp||"·")+'</td>'; } var d=disp-q; var cls=d<0?"dneg":"dpos"; return '<td class="deltacell '+cls+'" title="disp '+disp+' · ideale '+q+'">'+(d>0?"+":"")+d+'</td>'; }
+  if(isAdmin){ return '<td class="'+(q>0?"has ":"")+aDepthClass(q)+'">'+aQiInput(m,code,q)+'</td>'; }
+  return '<td class="'+(q>0?"has ":"")+aDepthClass(q)+'">'+(q>0?q:"·")+'</td>'; }
+function onEditSel(e){ var s=e.target; var m=s.dataset.m,f=s.dataset.f; var code=s.value; var qty=code?(A_LADDER.indexOf(code)+1)*A_STEP:0; if(!DATA[tab][m])DATA[tab][m]={}; if(qty>0)DATA[tab][m][f]=qty; else delete DATA[tab][m][f]; var td=s.closest("td"); if(td)td.classList.toggle("has",qty>0); dirty=true; recalc(); }
+function delMarchio(m){ if(!isAdmin)return; if(!confirm("Eliminare il marchio "+m+" da "+tab+"?"))return; delete DATA[tab][m]; dirty=true; render(); }
+function asqShowSpin(){ try{ var w=document.querySelector('.tablewrap'); if(!w)return; w.style.position='relative'; var ov=document.getElementById('asqOv'); if(!ov){ ov=document.createElement('div'); ov.id='asqOv'; ov.style.cssText='position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.55)'; var sp=document.createElement('div'); sp.style.cssText='width:34px;height:34px;border:3px solid #d9d9d9;border-top-color:#2b7fd6;border-radius:50%'; ov.appendChild(sp); w.appendChild(ov); try{sp.animate([{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{duration:800,iterations:Infinity});}catch(e){} } ov.style.display='flex'; }catch(e){} }
+function asqHideSpin(){ try{ var ov=document.getElementById('asqOv'); if(ov)ov.style.display='none'; }catch(e){} }
+async function loadDelta(){ asqShowSpin(); ADISP={}; ADISP_tab=tab; var fornSel=(function(){try{return $("#forn").value;}catch(e){return "";}})(); var marchi=Object.keys(DATA[tab]); if(!marchi.length){asqHideSpin();return;} var NORM={}; marchi.forEach(function(m){ NORM[String(m).toUpperCase().trim()]=m; }); var MA_NORM={}; Object.keys(MARCHI_ATTIVI).forEach(function(k){ MA_NORM[String(k).toUpperCase().trim()]=MARCHI_ATTIVI[k]; }); var marchiQ=Array.from(new Set(marchi.concat(marchi.map(function(m){return String(m).toUpperCase();})))); var out=[],from=0; while(true){ var _qy=sb.from("giacenze").select("marchio,filiale,quantita_disponibile,tipo_lenti,fornitore").in("marchio",marchiQ).ilike("tipo_lenti",tab); if(fornSel)_qy=_qy.eq("fornitore",fornSel); var r=await _qy.order("barcode").range(from,from+999); if(r.error)break; out=out.concat(r.data||[]); if(!r.data||r.data.length<1000)break; from+=1000; if(from>500000)break; } var tl=String(tab).toLowerCase(); out.forEach(function(x){ if(String(x.tipo_lenti||"").toLowerCase()!==tl)return; var _mn=String(x.marchio||"").toUpperCase().trim(); var mk=NORM[_mn]; if(!mk)return; var _fn=String(x.fornitore||"").toUpperCase().trim(); if(fornSel){ if(_fn!==String(fornSel).toUpperCase().trim()) return; } else { var fa=MA_NORM[_mn]; if(fa){ var _fa=String(fa).toUpperCase().trim(); if(_fa && _fn.indexOf(_fa)<0 && _fa.indexOf(_fn)<0) return; } } var k=mk+"|"+x.filiale; ADISP[k]=(ADISP[k]||0)+Number(x.quantita_disponibile||0); }); asqHideSpin(); }
+function aDepthSelectPlain(id){ var o='<option value="">Non previsto</option>'; for(var i=0;i<A_LADDER.length;i++){ o+='<option value="'+A_LADDER[i]+'">'+A_LADDER[i]+'</option>'; } return '<select id="'+id+'" class="qd">'+o+'</select>'; }
+function amRenderMarchi(q){ q=String(q||"").toLowerCase(); var list=(window.__amMarchi||[]).filter(function(m){return !q||String(m).toLowerCase().indexOf(q)>=0;}); $("#amMar").innerHTML=list.length?list.map(function(m){return '<option value="'+esc(m)+'">'+esc(m)+'</option>';}).join(""):'<option value="">Nessun marchio</option>'; }
+async function openAddModal(){ if(!isAdmin)return; var back=document.getElementById("amBack"); if(!back){ back=document.createElement("div"); back.id="amBack"; back.className="amback"; document.body.appendChild(back); back.addEventListener("click",function(e){ if(e.target.id==="amBack")back.classList.remove("open"); }); }
+  back.innerHTML='<div class="ammodal"><h3 style="margin:0 0 10px">Aggiungi marchio ('+tab+')</h3><label>Fornitore</label><select id="amForn" class="qd" style="width:100%"><option value="">Caricamento…</option></select><label style="margin-top:8px;display:block">Marchio</label><input id="amSearch" placeholder="cerca…" style="width:100%;margin-bottom:4px"><select id="amMar" size="6" class="qd" style="width:100%"><option value="">Seleziona prima il fornitore</option></select><label style="margin-top:8px;display:block">Profondità per filiale</label><div id="amDepths" class="amdepths"></div><div class="amerr" id="amErr" style="color:var(--bad);min-height:16px;margin-top:6px"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="ghost" id="amCancel">Annulla</button><button class="addbtn" id="amOk">Aggiungi</button></div></div>';
+  back.classList.add("open");
+  $("#amDepths").innerHTML=PDV.map(function(p){ return '<div class="amdrow"><span>'+esc(p.nome)+'</span>'+aDepthSelectPlain("amd_"+p.codice)+'</div>'; }).join("");
+  try{ var rf=await sb.rpc("sv_g_fornitori"); var fs=(rf.data||[]).map(function(x){return typeof x==="string"?x:(x.fornitore||x.label||Object.values(x)[0]);}); $("#amForn").innerHTML='<option value="">Seleziona fornitore</option>'+fs.map(function(f){return '<option value="'+esc(f)+'">'+esc(f)+'</option>';}).join(""); }catch(e){ $("#amForn").innerHTML='<option value="">Errore fornitori</option>'; }
+  $("#amForn").addEventListener("change",async function(){ var f=$("#amForn").value; if(!f){ $("#amMar").innerHTML='<option value="">Seleziona prima il fornitore</option>'; return; } $("#amMar").innerHTML='<option>Caricamento…</option>'; try{ var rm=await sb.rpc("sv_g_marchi",{p_fornitore:f}); window.__amMarchi=(rm.data||[]).map(function(x){return typeof x==="string"?x:(x.marchio||x.label||Object.values(x)[0]);}); amRenderMarchi(""); }catch(e){ $("#amMar").innerHTML='<option value="">Errore marchi</option>'; } });
+  $("#amSearch").addEventListener("input",function(){ amRenderMarchi($("#amSearch").value); });
+  $("#amCancel").addEventListener("click",function(){ back.classList.remove("open"); });
+  $("#amOk").addEventListener("click",function(){ var m=$("#amMar").value; var err=$("#amErr"); if(!m){ err.textContent="Seleziona un marchio."; return; } if(DATA[tab][m]){ err.textContent="Marchio già presente in "+tab+"."; return; } var forn=$("#amForn").value||"Luxottica"; DATA[tab][m]={}; FORN[m]=forn; PDV.forEach(function(p){ var sel=document.getElementById("amd_"+p.codice); var code=sel?sel.value:""; if(code){ DATA[tab][m][p.codice]=(A_LADDER.indexOf(code)+1)*A_STEP; } }); dirty=true; back.classList.remove("open"); render(); toast("Marchio aggiunto: "+m); }); }
+
+function render(){
+  const fornSel=$("#forn").value;
+  let marchi=Object.keys(DATA[tab]).filter(m=>(!fornSel||FORN[m]===fornSel)&&!ESCLUSI_MARCHI.has(m)&&!ESCLUSI_FORNITORI.has(FORN[m])).sort((a,b)=>a.localeCompare(b));
+  let head="<tr><th class='mar'>Marchio</th>"+PDV.map(p=>`<th>${esc(p.nome)}</th>`).join("")+"<th class='tot'>Totale</th></tr>";
+  $("#tbl").tHead.innerHTML=head;
+  const body=marchi.map(m=>{
+    let tr=`<tr><td class="mar">${esc(m)}<br><small style="color:var(--muted);font-weight:400">${esc(FORN[m]||"")}</small><button class="delrow adminonly" data-m="${esc(m)}" title="Elimina marchio">🗑</button></td>`;
+    for(const p of PDV){ tr+=aCellHTML(m,p.codice);
+    }
+    tr+=`<td class="tot" data-rowtot="${esc(m)}">0</td></tr>`;
+    return tr;
+  });
+  $("#tbl").tBodies[0].innerHTML=body.join("")||`<tr><td class="mar" colspan="${PDV.length+2}" style="text-align:center;color:var(--muted);padding:24px">Nessun marchio${fornSel?" per "+esc(fornSel):""} in ${tab}. Aggiungine uno dall'alto.</td></tr>`;
+  let foot="<tr><td class='mar'>Totale</td>"+PDV.map(p=>`<td data-coltot="${p.codice}">0</td>`).join("")+"<td class='tot' id='grandtot'>0</td></tr>";
+  $("#tbl").tFoot.innerHTML=foot;
+  $("#tbl").querySelectorAll("input.qi").forEach(function(s){s.addEventListener("change",onEditQi);}); $("#tbl").querySelectorAll("button.delrow").forEach(function(b){b.addEventListener("click",function(){delMarchio(b.dataset.m);});});
+  recalc();
+}
+function onEdit(e){
+  const i=e.target; const m=i.dataset.m, f=i.dataset.f; let v=parseInt(i.value,10); if(isNaN(v)||v<0)v=0;
+  DATA[tab][m][f]=v; i.parentElement.classList.toggle("has",v>0); i.title=tiers(v); dirty=true; recalc();
+}
+function recalc(){
+  const fornSel=$("#forn").value;
+  const marchi=Object.keys(DATA[tab]).filter(m=>(!fornSel||FORN[m]===fornSel)&&!ESCLUSI_MARCHI.has(m)&&!ESCLUSI_FORNITORI.has(FORN[m]));
+  const col={}; PDV.forEach(p=>col[p.codice]=0); let grand=0;
+  marchi.forEach(m=>{ let rt=0, rg=0; PDV.forEach(p=>{const q=DATA[tab][m][p.codice]||0; rt+=q; col[p.codice]+=q; rg+=Number((typeof ADISP!=='undefined'&&ADISP[m+"|"+p.codice])||0);}); grand+=rt;
+    const c=$(`[data-rowtot="${cssEsc(m)}"]`); if(c){ if(deltaOn){ var rd=rg-rt; var rows=""; if(subIdeale)rows+='<div class="dl-ideale">'+rt+'</div>'; if(subGiac)rows+='<div class="dl-giac">'+rg+'</div>'; if(subDiff){ var dc=rd<0?"dneg":(rd>0?"dpos":"dzero"); rows+='<div class="dl-diff '+dc+'">'+(rd>0?"+":"")+rd+'</div>'; } if(!rows)rows='<div class="dl-diff dzero">·</div>'; c.innerHTML=rows; } else { c.textContent=rt; } } });
+  PDV.forEach(p=>{const c=$(`[data-coltot="${p.codice}"]`); if(c)c.textContent=col[p.codice];});
+  const g=$("#grandtot"); if(g)g.textContent=grand;
+}
+function tiers(q){ if(!q)return "spento"; const n=Math.round(q/7); const lad=["ST","P1","P2","P3","P4","T0","T1","T2","T3","T4","T5","T6","T7","T8","T9"];
+  return q+" pezzi · "+lad.slice(0,Math.min(n,lad.length)).join("+")+(n>lad.length?"…":""); }
+
+$("#addBtn").addEventListener("click",openAddModal);
+
+$("#saveBtn").addEventListener("click",async()=>{
+  const btn=$("#saveBtn"); btn.disabled=true; btn.textContent="Salvataggio…";
+  const rows=[];
+  for(const m of Object.keys(DATA[tab])) for(const p of PDV){ const q=DATA[tab][m][p.codice]||0; if(q>0) rows.push({marchio:m,tipo_lenti:tab,filiale:p.codice,qty_ideale:q,fornitore:FORN[m]||"Luxottica"}); }
+  const del=await sb.from("assortimento_marchio").delete().eq("tipo_lenti",tab);
+  if(del.error){ btn.disabled=false; btn.textContent="Salva modifiche"; toast("Errore: "+del.error.message); return; }
+  if(rows.length){ const ins=await sb.from("assortimento_marchio").insert(rows);
+    if(ins.error){ btn.disabled=false; btn.textContent="Salva modifiche"; toast("Errore: "+ins.error.message); return; } }
+  dirty=false; btn.disabled=false; btn.textContent="Salva modifiche"; toast("Assortimento "+tab+" salvato ✓");
+});
+
+let toastT;
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2600); }
+window.addEventListener("beforeunload",e=>{ if(dirty){e.preventDefault();e.returnValue="";} });
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+function cssEsc(s){return String(s).replace(/["\\]/g,"\\$&");}
+boot();
+
+(async function(){try{const {data:{session}}=await sb.auth.getSession();const _r=session&&session.user&&session.user.user_metadata&&session.user.user_metadata.role;var _showAgg=(_r==='admin'); if(!_showAgg && _r && _r!=='vendita'){ try{ var _ppN=await sb.from('ruoli_permessi').select('puo_accedere').eq('ruolo',_r).eq('pagina','aggiornamenti').maybeSingle(); _showAgg=!!(_ppN.data && _ppN.data.puo_accedere); }catch(_e){} } if(_showAgg){var e=document.getElementById('navRevisioni');if(e)e.style.display='';}}catch(e){}})();
+</script>
+
+<script>
+/* Vista ridotta ruolo fornitore (assortimento) - sola lettura + filtro bloccato */
+(function(){
+  if(window.__asqFornView) return; window.__asqFornView=true;
+  var css=document.createElement('style');
+  css.textContent='body.asqforn .tablewrap{visibility:hidden} body.asqforn.asqforn-ready .tablewrap{visibility:visible}';
+  (document.head||document.documentElement).appendChild(css);
+  function who(){ return new Promise(function(resolve){
+    try{ if(sessionStorage.getItem('sv_sim_role')==='fornitore'){ return resolve({name:sessionStorage.getItem('sv_sim_fornitore')||''}); } }catch(e){}
+    (async function(){ try{ var u=await sb.auth.getUser(); var uu=u&&u.data&&u.data.user; var role=uu&&uu.user_metadata&&uu.user_metadata.role; if(role!=='fornitore'){ return resolve(null); } var nm=''; try{ var uid=uu&&uu.id; if(uid){ var r=await sb.from('user_fornitori').select('fornitore').eq('user_id',uid).maybeSingle(); if(r&&r.data&&r.data.fornitore) nm=r.data.fornitore; } }catch(e){} if(!nm) nm=(uu.user_metadata&&uu.user_metadata.fornitore)||''; return resolve({name:nm}); }catch(e){ return resolve(null); } })();
+  }); }
+  function simplifyNav(){ try{ document.querySelectorAll('header nav a').forEach(function(a){ var h=(a.getAttribute('href')||''); if(h.indexOf('presenza.html')<0 && h.indexOf('assortimento.html')<0) a.style.display='none'; }); }catch(e){} try{ var imp=document.querySelector('header a[href="impostazioni.html"]'); if(imp) imp.style.display='none'; }catch(e){} }
+  function lockFilter(name){ var tries=0; var iv=setInterval(function(){ tries++; var sel=document.getElementById('forn'); if(sel){ var has=[].some.call(sel.options,function(o){return o.value===name;}); if(has||tries>50){ if(!has && name){ var op=document.createElement('option'); op.value=name; op.textContent=name; sel.appendChild(op); } if(sel.value!==name){ sel.value=name; try{ sel.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){} } [].forEach.call(sel.options,function(o){ if(o.value==='') o.style.display='none'; }); sel.disabled=true; sel.title='Bloccato sul tuo fornitore'; clearInterval(iv); setTimeout(function(){ document.body.classList.add('asqforn-ready'); },200); } } else if(tries>60){ clearInterval(iv); document.body.classList.add('asqforn-ready'); } },100); }
+  function boot(){ who().then(function(info){ if(!info) return; window.__asqIsForn=true; document.body.classList.add('asqforn','notadmin'); simplifyNav(); lockFilter(String(info.name||'')); }); }
+  if(document.readyState!=='loading') boot(); else document.addEventListener('DOMContentLoaded',boot);
+})();
+</script>
+
+<script>
+/* STEP4 Visualizza come → Fornitori (robust v2) */
+(function(){
+  if(window.__fornSimInstalled) return; window.__fornSimInstalled=true; try{ if(sessionStorage.getItem('sv_sim_role')==='fornitore') return; }catch(e){}
+  var FA=['KERING EYEWEAR','LUXOTTICA ITALIA SRL','MARCHON','MOSCOT HOLDING SA','MYKITA','THELIOS SPA'];
+  try{ (async function(){ try{ var r=await sb.from('marchi_fornitori_attivi').select('fornitore_attivo'); var s={}; (r.data||[]).forEach(function(x){ if(x.fornitore_attivo) s[x.fornitore_attivo]=1; }); var a=Object.keys(s).sort(); if(a.length) FA=a; }catch(e){} try{ scan(); }catch(e){} })(); }catch(e){}
+  function add(menu, tmpl){ if(menu.__fa) return; menu.__fa=true;
+    var hd=document.createElement('div'); hd.textContent='🏭 Fornitori'; hd.setAttribute('data-sim-sect','fornitori'); hd.style.cssText='padding:6px 12px;font-size:11px;color:#888;border-top:1px solid rgba(0,0,0,.15);margin-top:4px;';
+    menu.appendChild(hd);
+    FA.forEach(function(f){ var d=document.createElement('div'); if(tmpl){ try{ d.style.cssText=tmpl.style.cssText; }catch(e){} } d.textContent='🏭 Fornitore → '+f; d.setAttribute('data-sim-role','fornitore'); d.setAttribute('data-forn',f); d.style.cursor='pointer';
+      d.onclick=function(){ var nome=this.getAttribute('data-forn'); try{ sessionStorage.setItem('sv_sim_role','fornitore'); sessionStorage.setItem('sv_sim_fornitore',nome); sessionStorage.removeItem('sv_sim_filiale'); }catch(e){} location.href='assortimento.html'; };
+      menu.appendChild(d); });
+    try{ console.log('[STEP4] sezione Fornitori iniettata:', FA.length); }catch(e){}
+  }
+  function scan(){ try{ var all=document.getElementsByTagName('div'); for(var i=0;i<all.length;i++){ var m=all[i]; if(m.__fa) continue; var kids=m.children; if(!kids||kids.length<3||kids.length>40) continue; var gEl=null,vEl=null,tmpl=null; for(var k=0;k<kids.length;k++){ var tc=kids[k].textContent||''; if(/Gestore/.test(tc)&&tc.length<40&&!gEl){gEl=kids[k]; tmpl=kids[k];} if(/Vendita/.test(tc)&&/→/.test(tc)&&tc.length<60&&!vEl){vEl=kids[k];} } if(gEl&&vEl&&gEl!==vEl) add(m,tmpl); } }catch(e){} }
+  var _t=null; function sched(){ if(_t) return; _t=setTimeout(function(){ _t=null; scan(); }, 120); }
+  try{ var mo=new MutationObserver(sched); mo.observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+  if(document.readyState!=='loading') sched(); else document.addEventListener('DOMContentLoaded',sched);
+})();
+</script>
+
+</body>
+</html>
