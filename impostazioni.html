@@ -129,6 +129,7 @@
 <body>
 <div id="stg-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#b45309;color:#fff;font:600 12px/24px system-ui,Arial,sans-serif;text-align:center;height:24px;letter-spacing:.3px;pointer-events:none;box-shadow:0 -1px 4px rgba(0,0,0,.35)">⚠️ AMBIENTE DI STAGING — I dati non sono reali</div>
 
+
 <div id="login">
   <div class="card">
     <div class="brand"><div class="dot">S</div><h1>StockView</h1></div>
@@ -914,6 +915,24 @@ boot();
     if(window.MutationObserver){var mo=new MutationObserver(function(ms){ms.forEach(function(m){(m.addedNodes||[]).forEach(function(n){if(n.nodeType!==1)return;if(n.matches&&n.matches("input[type=\"password\"]"))wrap(n);if(n.querySelectorAll)scan(n);});});});mo.observe(document.body||document.documentElement,{childList:true,subtree:true});}
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
+<!-- sv-perffornsetting-injected -->
+<script>
+(function(){
+  function build(){
+    var anchor=document.getElementById("svAllocAdmin");
+    if(!anchor||document.getElementById("svPerfFornSetting"))return;
+    var box=anchor.closest("div");if(!box)return;
+    var wrap=document.createElement("div");wrap.id="svPerfFornWrap";wrap.style.marginTop="4px";
+    wrap.innerHTML='<label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer"><input type="checkbox" id="svPerfFornSetting"> <b>Mostra Performance al fornitore</b></label><p style="color:var(--muted);font-size:13px;margin:6px 0 0 26px">Se attivo, gli utenti fornitore vedono la tab Performance in Assortimento ideale (solo i propri dati).<span id="svPerfFornMsg"></span></p>';
+    box.appendChild(wrap);
+    var cb=document.getElementById("svPerfFornSetting"),msg=document.getElementById("svPerfFornMsg");
+    cb.disabled=true;msg.textContent=" Caricamento\u2026";
+    sb.from("impostazioni_sistema").select("valore").eq("chiave","performance_fornitore").maybeSingle().then(function(r){cb.checked=(r.data&&r.data.valore==="true");cb.disabled=false;msg.textContent="";});
+    cb.addEventListener("change",function(){var val=cb.checked?"true":"false";cb.disabled=true;msg.textContent=" Salvataggio\u2026";sb.from("impostazioni_sistema").upsert({chiave:"performance_fornitore",valore:val},{onConflict:"chiave"}).then(function(r){cb.disabled=false;msg.textContent=r.error?(" Errore"):(" Salvato \u2713");setTimeout(function(){msg.textContent="";},1500);});});
+  }
+  setInterval(function(){try{build();}catch(e){}},600);
 })();
 </script>
 </body>
