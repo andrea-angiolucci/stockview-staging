@@ -83,6 +83,7 @@
 <body>
 <div id="stg-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#b45309;color:#fff;font:600 12px/24px system-ui,Arial,sans-serif;text-align:center;height:24px;letter-spacing:.3px;pointer-events:none;box-shadow:0 -1px 4px rgba(0,0,0,.35)">⚠️ AMBIENTE DI STAGING — I dati non sono reali</div>
 
+
 <div id="login">
   <div class="card">
     <div class="brand"><div class="dot">S</div><h1>StockView</h1></div>
@@ -113,11 +114,14 @@
   </header>
 
   <div class="wrap">
-    <h2 class="pagetitle">Revisioni cambio categoria</h2>
-    <div id="content"></div>
-    <h2 class="pagetitle" style="margin-top:28px">Correzioni magazzino richieste</h2>
+    <div id="revTop"></div>
+    <h2 class="pagetitle" id="hDaFare">Da fare <span class="cnt" id="cntDaFare"></span></h2>
+    <div id="secPend"></div>
+    <div class="section-h" id="lblMag" style="margin-top:16px">Correzioni magazzino</div>
     <p style="color:var(--muted);margin:-6px 0 12px;font-size:13px">Articoli non trovati durante il ricircolo — da correggere nel gestionale</p>
     <div id="nonTrovati"></div>
+    <h2 class="pagetitle" id="hCompletati" style="margin-top:28px">Completati <span class="cnt" id="cntCompletati"></span></h2>
+    <div id="secComp"></div>
   </div>
 </div>
 
@@ -196,7 +200,7 @@ async function ntUndo(bt){ if(bt.disabled)return; bt.disabled=true; var id=bt.da
   try{ var r=await sb.from("ricircoli").update({note:null}).eq("id",id); if(r.error)throw r.error; for(var i=0;i<NT_ROWS.length;i++){ if(String(NT_ROWS[i].id)===String(id)){ NT_ROWS[i].note=null; break; } } renderNT(); toast("Annullato"); }catch(e){ bt.disabled=false; toast("Errore: "+String((e&&e.message)||e),true); } }
 
 function renderCC(){
-  var host=$("#content"); if(!host)return;
+  var host=$("#secPend"); if(!host)return;
   var canEseg=(ROLE==="admin"||ROLE==="gestore");
   var P=CC_PEND.slice(); sApply(P,CC_SORT,ccVal);
   var C=CC_COMP.slice(); sApply(C,CO_SORT,coVal);
@@ -223,6 +227,7 @@ function renderCC(){
         '<td style="white-space:nowrap">'+act+'</td></tr>';
     }).join("")+'</tbody></table></div>';
   }
+  var hPend=h; h='';
   h+='<div class="section-h">Richieste completate <span class="cnt">'+C.length+(CC_COMP.length>=50?"+":"")+'</span></div>';
   if(!C.length){ h+='<div class="notice">Nessuna richiesta completata.</div>'; }
   else{
@@ -240,12 +245,12 @@ function renderCC(){
         '<td class="muted">'+esc(r.richiesta_da||"—")+'</td></tr>';
     }).join("")+'</tbody></table></div>';
   }
-  host.innerHTML=h;
+  host.innerHTML=hPend; var _ce=document.getElementById("secComp"); if(_ce)_ce.innerHTML=h;
   sWire(document.getElementById("ccPendWrap"),CC_SORT,renderCC);
   sWire(document.getElementById("ccCompWrap"),CO_SORT,renderCC);
-  host.querySelectorAll(".ccEseg").forEach(function(b){ b.onclick=function(){ ccEseguito(b); }; });
-  host.querySelectorAll(".ccUndo").forEach(function(b){ b.onclick=function(){ ccUndo(b); }; });
-  host.querySelectorAll(".ccDel").forEach(function(b){ b.onclick=function(){ confirmDelete(b.dataset.del,b); }; });
+  document.querySelectorAll(".ccEseg").forEach(function(b){ b.onclick=function(){ ccEseguito(b); }; });
+  document.querySelectorAll(".ccUndo").forEach(function(b){ b.onclick=function(){ ccUndo(b); }; });
+  document.querySelectorAll(".ccDel").forEach(function(b){ b.onclick=function(){ confirmDelete(b.dataset.del,b); }; });
 }
 
 function renderNT(){
@@ -321,10 +326,10 @@ $("#loginForm").addEventListener("submit",async e=>{ e.preventDefault(); const b
 $("#logout").addEventListener("click",async()=>{ await sb.auth.signOut(); location.reload(); });
 
 async function loadAll(){
-  $("#content").innerHTML='<div class="status">Carico…</div>';
+  $("#secPend").innerHTML='<div class="status">Carico…</div>';
   const pend=await sb.from("richieste_cambio_categoria").select("*").eq("stato","pendente").order("richiesta_il",{ascending:false});
   const comp=await sb.from("richieste_cambio_categoria").select("*").eq("stato","completata").order("completata_il",{ascending:false}).limit(50);
-  if(pend.error){ $("#content").innerHTML='<div class="notice" style="color:var(--bad)">Errore: '+esc(pend.error.message)+'</div>'; return; }
+  if(pend.error){ $("#secPend").innerHTML='<div class="notice" style="color:var(--bad)">Errore: '+esc(pend.error.message)+'</div>'; return; }
   CC_PEND=pend.data||[]; CC_COMP=comp.data||[];
   renderCC();
 }
@@ -356,6 +361,41 @@ boot();
 <script>
 /* STEP3-E redirect fornitore a presenza */
 (function(){ window.__fornRedirect=1; (async function(){ try{ if(sessionStorage.getItem('sv_sim_role')==='fornitore'){ location.replace('presenza.html'); return; } if(typeof sb==='undefined'||!sb) return; var u=await sb.auth.getUser(); var uid=u&&u.data&&u.data.user&&u.data.user.id; if(!uid) return; var r=await sb.from('user_fornitori').select('user_id').eq('user_id',uid).maybeSingle(); if(r&&r.data){ location.replace('presenza.html'); } }catch(e){} })(); })();
+</script>
+
+
+<!-- sv-revenh-injected -->
+<script>
+(function(){
+ var FILTER='all';
+ function el(id){return document.getElementById(id);}
+ function daFareBlock(){ var l=el('lblMag'); var p=l?l.nextElementSibling:null; var arr=[el('hDaFare'),el('secPend'),l,el('nonTrovati')]; if(p&&p.tagName==='P')arr.push(p); return arr; }
+ function compBlock(){ return [el('hCompletati'),el('secComp')]; }
+ function counts(){ return {d:(window.CC_PEND||[]).length+(window.NT_ROWS||[]).length, c:(window.CC_COMP||[]).length}; }
+ function hideSub(){ [].forEach.call(document.querySelectorAll('#secPend>.section-h,#secComp>.section-h'),function(x){x.style.display='none';}); }
+ function btn(id,label){return '<button id="'+id+'" type="button" style="font:inherit;font-size:12px;padding:4px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--txt);cursor:pointer">'+label+'</button>';}
+ function applyFilter(){
+   function show(a,on){a.forEach(function(x){if(x)x.style.display=on?'':'none';});}
+   show(daFareBlock(), FILTER==='all'||FILTER==='dafare'); show(compBlock(), FILTER==='all'||FILTER==='comp');
+   var l=el('lblMag'); if(l){ var noNT=!((window.NT_ROWS||[]).length); if(noNT||FILTER==='comp') l.style.display='none'; }
+   ['fAll','fDa','fComp'].forEach(function(id){var x=el(id);if(x){x.style.background='var(--panel2)';x.style.color='var(--txt)';}});
+   var m={all:'fAll',dafare:'fDa',comp:'fComp'}; var a=el(m[FILTER]); if(a){a.style.background='var(--accent)';a.style.color='#0b0f14';}
+ }
+ function buildTop(){
+   var top=el('revTop'); if(!top)return; var c=counts();
+   top.innerHTML='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 6px;font-size:14px">'+
+     '<a data-go="hDaFare" style="color:var(--accent);text-decoration:none;cursor:pointer"><b>'+c.d+'</b> da fare</a><span style="color:var(--muted)">\u00b7</span>'+
+     '<a data-go="hCompletati" style="color:var(--accent);text-decoration:none;cursor:pointer"><b>'+c.c+'</b> completati</a></div>'+
+     '<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:2px 0 10px">'+btn('fAll','Tutto')+btn('fDa','Da fare')+btn('fComp','Completati')+'</div>';
+   top.querySelectorAll('[data-go]').forEach(function(a){ a.onclick=function(e){ e.preventDefault(); var t=el(a.getAttribute('data-go')); if(t)t.scrollIntoView({behavior:'smooth',block:'start'}); }; });
+   el('fAll').onclick=function(){FILTER='all';applyFilter();}; el('fDa').onclick=function(){FILTER='dafare';applyFilter();}; el('fComp').onclick=function(){FILTER='comp';applyFilter();};
+   var cd=el('cntDaFare'); if(cd)cd.textContent=c.d; var cc=el('cntCompletati'); if(cc)cc.textContent=c.c;
+ }
+ function enhance(){ try{ hideSub(); buildTop(); applyFilter(); }catch(e){} }
+ function wrapFn(name){ var o=window[name]; if(typeof o==='function'&&!o.__w){ var w=function(){ var r=o.apply(this,arguments); enhance(); return r; }; w.__w=true; window[name]=w; } }
+ function init(){ wrapFn('renderCC'); wrapFn('renderNT'); enhance(); }
+ if(document.readyState==='loading'){ window.addEventListener('DOMContentLoaded',function(){ setTimeout(init,400); }); } else { setTimeout(init,400); }
+})();
 </script>
 </body>
 </html>
