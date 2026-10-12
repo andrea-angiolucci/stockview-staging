@@ -452,7 +452,7 @@ $("#tbToggle").addEventListener("click",()=>{const tb=$("#toolbar");if(!tb)retur
 document.addEventListener("dblclick",e=>{const m=e.target.closest("#tbl td.mar[data-img]");if(m){const q=m.getAttribute("data-img");if(q)window.open("https://www.google.com/search?tbm=isch&q="+encodeURIComponent(q),"_blank");const tr=m.closest("tr");if(tr){document.querySelectorAll("#tbl tbody tr.selrow").forEach(x=>x.classList.remove("selrow"));tr.classList.add("selrow");}}});
 document.addEventListener("click",e=>{if(!e.target.closest("#tbl td.mar[data-img]"))return;document.querySelectorAll("#tbl tbody tr.selrow").forEach(x=>x.classList.remove("selrow"));});
 function svSave(rows,suff){ const ws=XLSX.utils.json_to_sheet(rows); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Presenza"); XLSX.writeFile(wb,"controllo_presenza"+(suff||"")+"_"+new Date().toISOString().slice(0,10)+".xlsx"); }
-async function svFetchAll(table,sel,vals,extra){ const CH=300; const parts=[]; for(let i=0;i<vals.length;i+=CH)parts.push(vals.slice(i,i+CH)); const results=await Promise.all(parts.map(async function(part){ let acc=[],from=0; while(true){ let q=sb.from(table).select(sel).in("barcode",part); if(extra)q=extra(q); const r=await q.range(from,from+999); const d=r.data||[]; acc=acc.concat(d); if(d.length<1000)break; from+=1000; } return acc; })); let out=[]; results.forEach(function(a){ out=out.concat(a); }); return out; }
+async function svFetchAll(table,sel,vals,extra){ let out=[]; const CH=150; for(let i=0;i<vals.length;i+=CH){ const part=vals.slice(i,i+CH); let from=0; while(true){ let q=sb.from(table).select(sel).in("barcode",part); if(extra)q=extra(q); const r=await q.range(from,from+999); const d=r.data||[]; out=out.concat(d); if(d.length<1000)break; from+=1000; } } return out; }
 $("#dl").addEventListener("click",async()=>{
   if(!lastCells.length){alert("Nessun dato da esportare: applica un filtro.");return;}
   if($("#dlmode").value==="sint"){ svSave(lastCells.map(c=>({Fornitore:c.fornitore,Marchio:c.marchio,Tipo:c.tipo_lenti,Categoria:c.categoria,Barcode:c.barcode,Modello:c.modello,Colore:c.colore,Calibro:c.calibro,Negozio:c.negozio,Disponibile:c.disponibile,Magazzino:c.magazzino,Prenotati:c.prenotati,InArrivo:c.in_arrivo,Venduto:c.venduto,Presente:c.presente}))); return; }
@@ -1022,14 +1022,19 @@ async function applyFornGiacFilter(){
     if(!farr.length||!lastCells.length)return;
     var bcs=Array.from(new Set(lastCells.map(function(c){return c.barcode;})));
     var allowed=new Set();
-    var _parts=[]; for(var i=0;i<bcs.length;i+=200)_parts.push(bcs.slice(i,i+200));
-    var _res=await Promise.all(_parts.map(async function(part){ var acc=[],from=0; while(true){ var r=await sb.from("giacenze").select("barcode").in("barcode",part).in("fornitore",farr).range(from,from+999); var d=r.data||[]; acc=acc.concat(d); if(d.length<1000)break; from+=1000; } return acc; }));
-    _res.forEach(function(a){ a.forEach(function(x){ allowed.add(x.barcode); }); });
+    for(var i=0;i<bcs.length;i+=200){
+      var part=bcs.slice(i,i+200), from=0;
+      while(true){
+        var r=await sb.from("giacenze").select("barcode").in("barcode",part).in("fornitore",farr).range(from,from+999);
+        var d=r.data||[]; for(var j=0;j<d.length;j++)allowed.add(d[j].barcode);
+        if(d.length<1000)break; from+=1000;
+      }
+    }
     lastCells=lastCells.filter(function(c){return allowed.has(c.barcode);});
   }catch(e){ console.log("applyFornGiacFilter err",e); }
 }
 async function _runOnce(gen){
-  const f=[...FILTERS.msFornitore.selected]; let m=[...FILTERS.msMarchio.selected]; const _wholeForn=(f.length && !m.length); if(_wholeForn){ m=[...((FILTERS.msMarchio&&FILTERS.msMarchio.items)||[])]; } const t=[...FILTERS.msTipo.selected],c=[...FILTERS.msCategoria.selected],mo=[...(FILTERS.msModello?FILTERS.msModello.selected:[])];
+  const f=[...FILTERS.msFornitore.selected],m=[...FILTERS.msMarchio.selected],t=[...FILTERS.msTipo.selected],c=[...FILTERS.msCategoria.selected],mo=[...(FILTERS.msModello?FILTERS.msModello.selected:[])];
   if(f.length && !m.length){ lastCells=[]; if(gen!==RUN_GEN)return; $("#tablewrap").style.display="none"; $("#status").innerHTML="Seleziona un marchio per visualizzare le referenze"; return; }
   $("#status").innerHTML='<span class="spin"></span>Calcolo presenza…';
   const {data,error}=await sb.rpc("presenza_celle2",{p_marchi:m.map(idealMarName),p_tipi:t,p_categorie:c,p_fornitori:[]}).range(0,49999); window.__rpcN=(data||[]).length; try{window.__deadMap={};(data||[]).forEach(function(r){var b=String(r.barcode);var d=window.__deadMap[b]||(window.__deadMap[b]={pren:0,arr:0});d.pren+=(+r.prenotati||0);d.arr+=(+r.in_arrivo||0);});}catch(e){}
