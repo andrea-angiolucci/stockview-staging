@@ -1034,7 +1034,7 @@ async function applyFornGiacFilter(){
   }catch(e){ console.log("applyFornGiacFilter err",e); }
 }
 async function _runOnce(gen){
-  const f=[...FILTERS.msFornitore.selected]; let m=[...FILTERS.msMarchio.selected]; if(f.length && !m.length){ m=[...((FILTERS.msMarchio&&FILTERS.msMarchio.items)||[])]; } const t=[...FILTERS.msTipo.selected],c=[...FILTERS.msCategoria.selected],mo=[...(FILTERS.msModello?FILTERS.msModello.selected:[])];
+  const f=[...FILTERS.msFornitore.selected]; let m=[...FILTERS.msMarchio.selected]; const _wholeForn=(f.length && !m.length); if(_wholeForn){ m=[...((FILTERS.msMarchio&&FILTERS.msMarchio.items)||[])]; } const t=[...FILTERS.msTipo.selected],c=[...FILTERS.msCategoria.selected],mo=[...(FILTERS.msModello?FILTERS.msModello.selected:[])];
   if(f.length && !m.length){ lastCells=[]; if(gen!==RUN_GEN)return; $("#tablewrap").style.display="none"; $("#status").innerHTML="Seleziona un marchio per visualizzare le referenze"; return; }
   $("#status").innerHTML='<span class="spin"></span>Calcolo presenza…';
   const {data,error}=await sb.rpc("presenza_celle2",{p_marchi:m.map(idealMarName),p_tipi:t,p_categorie:c,p_fornitori:[]}).range(0,49999); window.__rpcN=(data||[]).length; try{window.__deadMap={};(data||[]).forEach(function(r){var b=String(r.barcode);var d=window.__deadMap[b]||(window.__deadMap[b]={pren:0,arr:0});d.pren+=(+r.prenotati||0);d.arr+=(+r.in_arrivo||0);});}catch(e){}
@@ -1042,10 +1042,10 @@ async function _runOnce(gen){
   var _moSet=(mo&&mo.length)?new Set(mo.map(function(v){return String(v).trim().toUpperCase();})):null; lastCells=buildMasterCells(data||[]); vbarcode={}; applyPendOverride(); refreshOrdCat();
   const bcs=[...new Set(lastCells.map(c=>c.barcode))];
   if(bcs.length){const ystart=(new Date().getFullYear())+"-01-01";const vb=await svFetchAll("vendite","barcode,quantita",bcs,function(q){return q.gte("data",ystart).or("tipo_operazione.neq.ING,tipo_operazione.is.null");});vb.forEach(r=>{vbarcode[r.barcode]=(vbarcode[r.barcode]||0)+(r.quantita||1);});}
-  if(m.length)await loadGiacExtra(m,t,c);
+  if(m.length && !_wholeForn)await loadGiacExtra(m,t,c);
   await loadExtraStock();
   await loadExtraCats();
-  await fillGhostCells(); if(dataMarchi==="tutti")await loadNoIdeal(); if(ageOn||prevOn)await loadAgePrev();
+  await fillGhostCells(); if(dataMarchi==="tutti" && !_wholeForn)await loadNoIdeal(); if(ageOn||prevOn)await loadAgePrev();
   if(_moSet){ lastCells=lastCells.filter(function(x){return _moSet.has(String(x.modello||"").trim().toUpperCase());}); }
   /* filtro fornitore: escludi barcode con giacenze.fornitore diverso da quello selezionato */
   await applyFornGiacFilter();
