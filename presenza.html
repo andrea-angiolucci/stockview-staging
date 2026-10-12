@@ -1022,14 +1022,9 @@ async function applyFornGiacFilter(){
     if(!farr.length||!lastCells.length)return;
     var bcs=Array.from(new Set(lastCells.map(function(c){return c.barcode;})));
     var allowed=new Set();
-    for(var i=0;i<bcs.length;i+=200){
-      var part=bcs.slice(i,i+200), from=0;
-      while(true){
-        var r=await sb.from("giacenze").select("barcode").in("barcode",part).in("fornitore",farr).range(from,from+999);
-        var d=r.data||[]; for(var j=0;j<d.length;j++)allowed.add(d[j].barcode);
-        if(d.length<1000)break; from+=1000;
-      }
-    }
+    var _parts=[]; for(var i=0;i<bcs.length;i+=200)_parts.push(bcs.slice(i,i+200));
+    var _res=await Promise.all(_parts.map(async function(part){ var acc=[],from=0; while(true){ var r=await sb.from("giacenze").select("barcode").in("barcode",part).in("fornitore",farr).range(from,from+999); var d=r.data||[]; acc=acc.concat(d); if(d.length<1000)break; from+=1000; } return acc; }));
+    _res.forEach(function(a){ a.forEach(function(x){ allowed.add(x.barcode); }); });
     lastCells=lastCells.filter(function(c){return allowed.has(c.barcode);});
   }catch(e){ console.log("applyFornGiacFilter err",e); }
 }
