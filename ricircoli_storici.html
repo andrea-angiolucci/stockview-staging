@@ -33,9 +33,10 @@
   .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px;width:340px}
   #app{display:none}
 </style>
+<!-- sv-cachebust -->
+<script>(function(){function b(){try{var v=Date.now().toString(36);document.querySelectorAll("a[href]").forEach(function(a){var h=a.getAttribute("href");if(!h)return;if(/^(https?:|mailto:|tel:|#|javascript:)/i.test(h))return;if(!/\.html(\?|#|$)/i.test(h))return;var hi=h.indexOf("#");var hash=hi>=0?h.slice(hi):"";var base=hi>=0?h.slice(0,hi):h;base=base.replace(/([?&])_cb=[^&]*/,"$1").replace(/[?&]$/,"");var sep=base.indexOf("?")>=0?"&":"?";a.setAttribute("href",base+sep+"_cb="+v+hash);});}catch(e){}}if(document.readyState!=="loading")b();else document.addEventListener("DOMContentLoaded",b);})();</script>
 </head>
 <body>
-<div id="stg-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#b45309;color:#fff;font:600 12px/24px system-ui,Arial,sans-serif;text-align:center;height:24px;letter-spacing:.3px;pointer-events:none;box-shadow:0 -1px 4px rgba(0,0,0,.35)">⚠️ AMBIENTE DI STAGING — I dati non sono reali</div>
 <div id="login"><div class="card"><div class="brand" style="margin-bottom:12px"><div class="dot">S</div><h1>StockView</h1></div><p class="who">Devi accedere.</p><p><a href="presenza.html" style="color:var(--accent)">Vai al login</a></p></div></div>
 <div id="app">
   <header>
@@ -44,7 +45,7 @@
       <a href="presenza.html">Controllo presenza</a>
       <a href="assortimento.html">Assortimento ideale</a>
       <a href="ricircolo.html">Ricircolo</a>
-      <a href="revisioni.html" id="navRevisioni" style="display:none">Aggiornamenti</a>
+      <a href="aggiornamenti.html" id="navRevisioni" style="display:none">Aggiornamenti</a>
     </nav>
     <div class="spacer"></div>
     <a href="impostazioni.html" class="rightlink">Impostazioni</a>
@@ -64,12 +65,10 @@
     <div class="pager" id="pager"></div>
   </div>
 </div>
-<script src="config.js"></script>
-<script>if(window.SV_CFG&&window.SV_CFG.STAGING){document.addEventListener("DOMContentLoaded",function(){if(document.getElementById("stg-banner"))return;var b=document.createElement("div");b.id="stg-banner";b.textContent="⚠️ AMBIENTE DI STAGING — dati reali, le modifiche NON sono in produzione";b.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#b45309;color:#fff;font:600 12px/24px system-ui,Arial,sans-serif;text-align:center;height:24px;letter-spacing:.3px;pointer-events:none;box-shadow:0 -1px 4px rgba(0,0,0,.35)";document.body.appendChild(b);});}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = window.SV_CFG.SUPABASE_URL;
-const SUPABASE_KEY = window.SV_CFG.SUPABASE_KEY;
+const SUPABASE_URL="https://ujrktzslichvrgpyoela.supabase.co";
+const SUPABASE_KEY="sb_publishable_6iLXznV2IcFZ_QHkU7fiFg_JLQ7815A";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s);
 function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;");}
@@ -123,5 +122,6 @@ function render(){
 }
 boot();
 </script>
+<div id="stg-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#b45309;color:#fff;font:600 12px/24px system-ui,Arial,sans-serif;text-align:center;height:24px;letter-spacing:.3px;pointer-events:none;box-shadow:0 -1px 4px rgba(0,0,0,.35)">⚠️ AMBIENTE DI STAGING — dati reali, le modifiche NON sono in produzione</div>
 </body>
 </html>
