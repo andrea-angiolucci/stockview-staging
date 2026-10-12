@@ -762,10 +762,12 @@ async function fillGhostCells(){
     lastCells.forEach(c=>{ if(!meta[c.barcode])meta[c.barcode]={fornitore:c.fornitore,marchio:c.marchio,tipo_lenti:c.tipo_lenti,categoria:c.categoria,modello:c.modello,colore:c.colore,calibro:c.calibro}; });
     const bcs=Object.keys(meta);
     if(!bcs.length||bcs.length>4000)return;
-    const gi=await svFetchAll("giacenze","barcode,filiale,quantita_disponibile,quantita_magazzino,quantita_prenotata,quantita_in_arrivo",bcs,q=>q.in("filiale",active));
-    const gmap={}; gi.forEach(g=>{ const k=g.barcode+"|"+g.filiale; const o=gmap[k]=gmap[k]||{d:0,m:0,p:0,a:0}; o.d+=g.quantita_disponibile||0; o.m+=g.quantita_magazzino||0; o.p+=g.quantita_prenotata||0; o.a+=g.quantita_in_arrivo||0; });
     const sy=new Date().getFullYear()+"-01-01";
-    const ve=await svFetchAll("vendite","barcode,filiale,quantita,data",bcs,q=>q.in("filiale",active).gte("data",sy).or("tipo_operazione.neq.ING,tipo_operazione.is.null"));
+    const [gi,ve]=await Promise.all([
+      svFetchAll("giacenze","barcode,filiale,quantita_disponibile,quantita_magazzino,quantita_prenotata,quantita_in_arrivo",bcs,q=>q.in("filiale",active)),
+      svFetchAll("vendite","barcode,filiale,quantita,data",bcs,q=>q.in("filiale",active).gte("data",sy).or("tipo_operazione.neq.ING,tipo_operazione.is.null"))
+    ]);
+    const gmap={}; gi.forEach(g=>{ const k=g.barcode+"|"+g.filiale; const o=gmap[k]=gmap[k]||{d:0,m:0,p:0,a:0}; o.d+=g.quantita_disponibile||0; o.m+=g.quantita_magazzino||0; o.p+=g.quantita_prenotata||0; o.a+=g.quantita_in_arrivo||0; });
     const vmap={}; ve.forEach(x=>{ const k=x.barcode+"|"+x.filiale; vmap[k]=(vmap[k]||0)+(x.quantita||1); });
     bcs.forEach(bc=>{ active.forEach(fil=>{ const k=bc+"|"+fil; if(have.has(k))return; const g=gmap[k], v=vmap[k]||0;
       lastCells.push(Object.assign({},meta[bc],{barcode:bc,filiale:fil,negozio:(FIL[fil]?FIL[fil].nome:fil),disponibile:g?g.d:0,magazzino:g?g.m:0,prenotati:g?g.p:0,in_arrivo:g?g.a:0,presente:!!(g&&g.d>0),venduto:v,_x:true,_np:true})); }); });
@@ -1109,10 +1111,12 @@ async function loadExtraStock(){
   extraStock={}; extraFil=[];
   const bcs=[...new Set(lastCells.map(c=>c.barcode))];
   if(!bcs.length)return;
-  const gi=await svFetchAll("giacenze","barcode,filiale,quantita_disponibile,quantita_magazzino,quantita_prenotata,quantita_in_arrivo",bcs);
-  gi.forEach(g=>{ if(g.filiale!=="Z"&&g.filiale!=="A")return; const o=(extraStock[g.barcode]=extraStock[g.barcode]||{}); o[g.filiale]={d:g.quantita_disponibile||0,m:g.quantita_magazzino||0,p:g.quantita_prenotata||0,a:g.quantita_in_arrivo||0,v:0}; });
   const sy=new Date().getFullYear()+"-01-01";
-  const ve=await svFetchAll("vendite","barcode,filiale,quantita,data",bcs,q=>q.gte("data",sy).in("filiale",["Z","A"]).or("tipo_operazione.neq.ING,tipo_operazione.is.null"));
+  const [gi,ve]=await Promise.all([
+    svFetchAll("giacenze","barcode,filiale,quantita_disponibile,quantita_magazzino,quantita_prenotata,quantita_in_arrivo",bcs),
+    svFetchAll("vendite","barcode,filiale,quantita,data",bcs,q=>q.gte("data",sy).in("filiale",["Z","A"]).or("tipo_operazione.neq.ING,tipo_operazione.is.null"))
+  ]);
+  gi.forEach(g=>{ if(g.filiale!=="Z"&&g.filiale!=="A")return; const o=(extraStock[g.barcode]=extraStock[g.barcode]||{}); o[g.filiale]={d:g.quantita_disponibile||0,m:g.quantita_magazzino||0,p:g.quantita_prenotata||0,a:g.quantita_in_arrivo||0,v:0}; });
   ve.forEach(x=>{ if(x.filiale!=="Z"&&x.filiale!=="A")return; const o=(extraStock[x.barcode]=extraStock[x.barcode]||{}); const f=(o[x.filiale]=o[x.filiale]||{d:0,m:0,p:0,a:0,v:0}); f.v+=(x.quantita||1); });
   if(filView==="tutte") extraFil=["A"];
   else if(filView==="giacenza"){ const has=f=>Object.keys(extraStock).some(bc=>{const e=extraStock[bc][f]; return e&&(e.d||e.m||e.p||e.a||e.v);}); extraFil=["A"].filter(has); }
