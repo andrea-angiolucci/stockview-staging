@@ -401,7 +401,7 @@ async function refreshCascade(changedId){
   if(changedId==="msFornitore"){
     const marchiList=await svMarchi(f);
     const prevM=[...FILTERS.msMarchio.selected];
-    mkFilter("msMarchio","Marchio",marchiList,prevM);
+    mkFilter("msMarchio","Marchio",marchiList,[]);
   }
   const m=[...(FILTERS.msMarchio?FILTERS.msMarchio.selected:[])];
   const tipiList=await svTipi(f,m);
