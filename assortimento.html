@@ -33,7 +33,7 @@
   .ghost{background:#fff;border:1px solid var(--line);color:var(--muted);padding:6px 11px;border-radius:8px;font-size:12.5px}
   .ghost:hover{border-color:var(--accent);color:var(--accent)}
   .wrap{max-width:1500px;margin:0 auto;padding:18px}
-  .bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px;position:sticky;top:54px;z-index:20;background:var(--bg);padding:10px 0 10px;border-bottom:1px solid var(--line)}
   .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
   .seg button{background:#fff;border:none;padding:9px 18px;font-size:14px;color:var(--muted);font-weight:600}
   .seg button.on{background:var(--accent);color:#fff}
@@ -63,7 +63,7 @@
   tfoot td.mar{background:#e4eef9}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:9px;font-size:13.5px;opacity:0;transition:.25s;pointer-events:none}
   .toast.show{opacity:1}
-  .qd{padding:4px 6px;border-radius:6px;background:#fff;border:1px solid var(--line);color:var(--ink);font-size:12px}
+  .qd{padding:4px 6px;border-radius:6px;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-size:12px}
   .deltacell{text-align:center;font-weight:700;font-size:13px}
   .deltacell.dpos{color:var(--ok)}
   .deltacell.dneg{color:var(--bad);background:rgba(229,72,77,.10)}
@@ -75,10 +75,10 @@
   body.notadmin .adminonly{display:none!important}
   .amback{position:fixed;inset:0;background:rgba(20,30,50,.45);display:none;align-items:center;justify-content:center;z-index:100}
   .amback.open{display:flex}
-  .ammodal{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;width:390px;max-width:92vw;box-shadow:var(--shadow)}
+  .ammodal{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;width:390px;max-width:92vw;box-shadow:var(--shadow);max-height:90vh;overflow-y:auto}
   .ammodal label{font-size:12px;color:var(--muted)}
-  .ammodal input,.ammodal select{color:var(--ink)}
-  .amdepths{max-height:150px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px;margin-top:4px}
+  .ammodal input,.ammodal select{color:var(--ink);background:var(--panel2);border-color:var(--line)}
+  .amdepths{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px;margin-top:4px}
   .amdrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:3px 4px}
   .amdrow span{font-size:12px;color:var(--ink)}
   td.dep0{color:var(--muted)}
@@ -123,10 +123,11 @@ tbody td{background:#16212e}
 .mar,td.mar{background:#16212e}
 input,select,textarea{background:#16212e;color:#e8eef5;border-color:#26384c}
 </style>
+<script>/*sv-obs-lockdown*/(function(){try{var role=null;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k)){try{var v=JSON.parse(localStorage.getItem(k));var t=v&&v.access_token;if(t){var pp=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')))));role=(pp.user_metadata&&pp.user_metadata.role)||pp.role||role;}}catch(e){}}}window.__SV_OBS=(role==='osservatore');if(!window.__SV_OBS)return;var of=window.fetch;window.fetch=function(u,o){try{var url=(typeof u==='string')?u:((u&&u.url)||'');var m=((o&&o.method)||(u&&u.method)||'GET').toUpperCase();var isRest=/\/rest\/v1\//.test(url);var isRpc=/\/rest\/v1\/rpc\//.test(url);var isFn=/\/functions\/v1\//.test(url);if(m!=='GET'&&m!=='HEAD'&&((isRest&&!isRpc)||isFn)){console.warn('[osservatore] scrittura bloccata:',m,url);return Promise.resolve(new Response(JSON.stringify({error:'sola lettura',code:'OBS_READONLY'}),{status:403,headers:{'Content-Type':'application/json'}}));}}catch(e){}return of.apply(this,arguments);};function badge(){try{if(document.getElementById('svObsBadge'))return;var b=document.createElement('span');b.id='svObsBadge';b.textContent='\uD83D\uDC41 Sola lettura';b.style.cssText='background:#334155;color:#cbd5e1;border:1px solid #475569;border-radius:12px;padding:3px 10px;font-size:12px;font-weight:600;margin-left:8px;white-space:nowrap;display:inline-block';var nav=document.querySelector('.navbar')||document.querySelector('nav')||document.querySelector('header');if(nav){nav.appendChild(b);}else{b.style.cssText+=';position:fixed;top:8px;right:12px;z-index:99999';document.body.appendChild(b);}}catch(e){}}if(document.readyState!=='loading'){badge();}else{document.addEventListener('DOMContentLoaded',badge);}setTimeout(badge,1500);}catch(e){}})();</script>
+<!-- sv-cachebust -->
+<script>(function(){function b(){try{var v=Date.now().toString(36);document.querySelectorAll("a[href]").forEach(function(a){var h=a.getAttribute("href");if(!h)return;if(/^(https?:|mailto:|tel:|#|javascript:)/i.test(h))return;if(!/\.html(\?|#|$)/i.test(h))return;var hi=h.indexOf("#");var hash=hi>=0?h.slice(hi):"";var base=hi>=0?h.slice(0,hi):h;base=base.replace(/([?&])_cb=[^&]*/,"$1").replace(/[?&]$/,"");var sep=base.indexOf("?")>=0?"&":"?";a.setAttribute("href",base+sep+"_cb="+v+hash);});}catch(e){}}if(document.readyState!=="loading")b();else document.addEventListener("DOMContentLoaded",b);})();</script>
 </head>
 <body>
-<div id="stg-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#b45309;color:#fff;font:600 12px/24px system-ui,Arial,sans-serif;text-align:center;height:24px;letter-spacing:.3px;pointer-events:none;box-shadow:0 -1px 4px rgba(0,0,0,.35)">⚠️ AMBIENTE DI STAGING — I dati non sono reali</div>
-
 
 <div id="login">
   <div class="card">
@@ -149,7 +150,7 @@ input,select,textarea{background:#16212e;color:#e8eef5;border-color:#26384c}
       <a href="assortimento.html" class="cur">Assortimento ideale</a>
     <a href="ricircolo.html">Ricircolo</a>
     
-    <a href="revisioni.html" id="navRevisioni" style="display:none">Aggiornamenti</a>
+    <a href="aggiornamenti.html" id="navRevisioni" style="display:none">Aggiornamenti</a>
     </nav>
     <div class="spacer"></div>
     <a href="impostazioni.html" style="color:var(--muted);text-decoration:none;font-size:13px;font-weight:600;margin-right:14px">Impostazioni</a>
@@ -176,12 +177,10 @@ input,select,textarea{background:#16212e;color:#e8eef5;border-color:#26384c}
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="config.js"></script>
-<script>if(window.SV_CFG&&window.SV_CFG.STAGING){document.addEventListener("DOMContentLoaded",function(){if(document.getElementById("stg-banner"))return;var b=document.createElement("div");b.id="stg-banner";b.textContent="⚠️ AMBIENTE DI STAGING — dati reali, le modifiche NON sono in produzione";b.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#b45309;color:#fff;font:600 12px/24px system-ui,Arial,sans-serif;text-align:center;height:24px;letter-spacing:.3px;pointer-events:none;box-shadow:0 -1px 4px rgba(0,0,0,.35)";document.body.appendChild(b);});}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = window.SV_CFG.SUPABASE_URL;
-const SUPABASE_KEY = window.SV_CFG.SUPABASE_KEY;
+const SUPABASE_URL="https://ujrktzslichvrgpyoela.supabase.co";
+const SUPABASE_KEY="sb_publishable_6iLXznV2IcFZ_QHkU7fiFg_JLQ7815A";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 /* === Visualizza come... (simulazione ruolo admin) === */
@@ -241,18 +240,21 @@ async function load(){
     sb.rpc("sv_marchi")
   ]);
   const usate=new Set((rows||[]).map(r=>r.filiale));
-  PDV=(fil||[]).filter(f=>usate.has(f.codice)).sort((a,b)=>a.nome.localeCompare(b.nome)).map(f=>({codice:f.codice,nome:f.nome}));
+  PDV=(fil||[]).filter(f=>f.attiva).sort((a,b)=>a.nome.localeCompare(b.nome)).map(f=>({codice:f.codice,nome:f.nome}));
   DATA={Vista:{},Sole:{}}; FORN={};
   for(const r of (rows||[])){ (DATA[r.tipo_lenti] ||= {}); (DATA[r.tipo_lenti][r.marchio] ||= {}); DATA[r.tipo_lenti][r.marchio][r.filiale]=r.qty_ideale; FORN[r.marchio]=r.fornitore||"Luxottica"; }
   // selettore fornitore
   const fornitori=[...new Set(Object.values(FORN))].filter(function(f){return !ESCLUSI_FORNITORI.has(f);}).sort();
   $("#forn").innerHTML='<option value="">Tutti i fornitori</option>'+fornitori.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join("");
   if(document.getElementById("marchiList"))$("#marchiList").innerHTML=(marchi||[]).map(m=>`<option value="${esc(typeof m==='string'?m:Object.values(m)[0])}">`).join("");
+  // ripristina tab (Vista/Sole) e fornitore dall'ultima visita
+  try{const savedTab=localStorage.getItem("asq_tab"); if(savedTab==="Vista"||savedTab==="Sole"){tab=savedTab;[...$("#seg").children].forEach(x=>x.classList.toggle("on",x.dataset.t===tab));}}catch(e){}
+  try{const savedForn=localStorage.getItem("asq_forn"); if(savedForn&&$("#forn").querySelector('option[value="'+savedForn+'"]'))$("#forn").value=savedForn;}catch(e){}
   render();
 }
 
-$("#seg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;[...$("#seg").children].forEach(x=>x.classList.remove("on"));b.classList.add("on");tab=b.dataset.t; asqShowSpin(); if(deltaOn){loadDelta().then(function(){render();asqHideSpin();});}else{requestAnimationFrame(function(){render();asqHideSpin();});}});
-$("#forn").addEventListener("change",render);
+$("#seg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;[...$("#seg").children].forEach(x=>x.classList.remove("on"));b.classList.add("on");tab=b.dataset.t;try{localStorage.setItem("asq_tab",tab);}catch(e){} asqShowSpin(); if(deltaOn){loadDelta().then(function(){render();asqHideSpin();});}else{requestAnimationFrame(function(){render();asqHideSpin();});}});
+$("#forn").addEventListener("change",function(){try{localStorage.setItem("asq_forn",$("#forn").value);}catch(e){}render();});
 $("#deltaBtn").addEventListener("click",async function(){ deltaOn=!deltaOn; sessionStorage.setItem("asqDelta",deltaOn?"1":"0"); $("#deltaBtn").classList.toggle("on",deltaOn); applyDeltaUI(); if(deltaOn){ await loadDelta(); } render(); });
 function applyDeltaUI(){ var st=document.getElementById("subToggles"); if(st) st.style.display=deltaOn?"inline-flex":"none"; var a=document.getElementById("subIdealeBtn"),b=document.getElementById("subGiacBtn"),c=document.getElementById("subDiffBtn"); if(a)a.classList.toggle("on",subIdeale); if(b)b.classList.toggle("on",subGiac); if(c)c.classList.toggle("on",subDiff); }
 function _subWire(id,fn){ var el=document.getElementById(id); if(el) el.addEventListener("click",function(){ fn(); applyDeltaUI(); render(); }); }
@@ -330,7 +332,7 @@ $("#saveBtn").addEventListener("click",async()=>{
   const btn=$("#saveBtn"); btn.disabled=true; btn.textContent="Salvataggio…";
   const rows=[];
   for(const m of Object.keys(DATA[tab])) for(const p of PDV){ const q=DATA[tab][m][p.codice]||0; if(q>0) rows.push({marchio:m,tipo_lenti:tab,filiale:p.codice,qty_ideale:q,fornitore:FORN[m]||"Luxottica"}); }
-  const del=await sb.from("assortimento_marchio").delete().eq("tipo_lenti",tab);
+  const _codPDV=PDV.map(function(p){return p.codice;}); const del=await sb.from("assortimento_marchio").delete().eq("tipo_lenti",tab).in("filiale",_codPDV);
   if(del.error){ btn.disabled=false; btn.textContent="Salva modifiche"; toast("Errore: "+del.error.message); return; }
   if(rows.length){ const ins=await sb.from("assortimento_marchio").insert(rows);
     if(ins.error){ btn.disabled=false; btn.textContent="Salva modifiche"; toast("Errore: "+ins.error.message); return; } }
@@ -541,5 +543,6 @@ window.__SVCACHE_CFG={key:'sv_cache_assortimento',container:'.tablewrap',statusS
  }
 })();
 </script>
+<div id="stg-banner" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#b45309;color:#fff;font:600 12px/24px system-ui,Arial,sans-serif;text-align:center;height:24px;letter-spacing:.3px;pointer-events:none;box-shadow:0 -1px 4px rgba(0,0,0,.35)">⚠️ AMBIENTE DI STAGING — dati reali, le modifiche NON sono in produzione</div>
 </body>
 </html>
