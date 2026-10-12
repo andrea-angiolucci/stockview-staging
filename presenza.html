@@ -1034,7 +1034,7 @@ async function applyFornGiacFilter(){
   }catch(e){ console.log("applyFornGiacFilter err",e); }
 }
 async function _runOnce(gen){
-  const f=[...FILTERS.msFornitore.selected],m=[...FILTERS.msMarchio.selected],t=[...FILTERS.msTipo.selected],c=[...FILTERS.msCategoria.selected],mo=[...(FILTERS.msModello?FILTERS.msModello.selected:[])];
+  const f=[...FILTERS.msFornitore.selected]; let m=[...FILTERS.msMarchio.selected]; if(f.length && !m.length){ m=[...((FILTERS.msMarchio&&FILTERS.msMarchio.items)||[])]; } const t=[...FILTERS.msTipo.selected],c=[...FILTERS.msCategoria.selected],mo=[...(FILTERS.msModello?FILTERS.msModello.selected:[])];
   if(f.length && !m.length){ lastCells=[]; if(gen!==RUN_GEN)return; $("#tablewrap").style.display="none"; $("#status").innerHTML="Seleziona un marchio per visualizzare le referenze"; return; }
   $("#status").innerHTML='<span class="spin"></span>Calcolo presenza…';
   const {data,error}=await sb.rpc("presenza_celle2",{p_marchi:m.map(idealMarName),p_tipi:t,p_categorie:c,p_fornitori:[]}).range(0,49999); window.__rpcN=(data||[]).length; try{window.__deadMap={};(data||[]).forEach(function(r){var b=String(r.barcode);var d=window.__deadMap[b]||(window.__deadMap[b]={pren:0,arr:0});d.pren+=(+r.prenotati||0);d.arr+=(+r.in_arrivo||0);});}catch(e){}
